@@ -1,0 +1,41 @@
+# --- Environnements virtuels ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Python cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Fichiers de logs ---
+*.log
+
+# --- Configurations locales ---
+.python-version
+
+# --- Build / distribution ---
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- Outils de formatage / lint ---
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- IDE / Éditeurs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Systèmes d’exploitation ---
+.DS_Store
+Thumbs.db
