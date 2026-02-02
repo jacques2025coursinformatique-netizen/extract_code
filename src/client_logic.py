@@ -5,7 +5,14 @@ from src.server_logic import ServerLogic
 
 
 class ClientLogic:
+    """
+    Orchestrates all front-end logic for project selection, versioning, file selection, and export/restore actions.
+    Delegates backend operations to ServerLogic. Maintains current project, version, and file selection state.
+    """
     def __init__(self):
+        """
+        Initialize the client logic state.
+        """
         self.project_root: Optional[str] = None
         self.server: Optional[ServerLogic] = None
         self.selected_version: Optional[str] = None
@@ -14,13 +21,24 @@ class ClientLogic:
     # ---------- Projet ----------
 
     def select_project(self, path: str) -> None:
+        """
+        Set the current project root and initialize the backend server logic.
+        Args:
+            path: Path to the project root directory.
+        """
         self.project_root = path
         self.server = ServerLogic(path)
 
     def has_project(self) -> bool:
+        """
+        Return True if a project is currently selected.
+        """
         return self.server is not None
 
     def open_project_folder(self) -> None:
+        """
+        Open the current project folder in the system file explorer.
+        """
         if not self.project_root:
             return
         if os.name == "nt":  # Windows
@@ -31,6 +49,11 @@ class ClientLogic:
     # ---------- Extraction ----------
 
     def extract_full_project(self) -> str:
+        """
+        Scan, snapshot, and export the full project context. Sets the selected version.
+        Returns:
+            The version identifier of the new snapshot.
+        """
         if not self.server:
             raise RuntimeError("Aucun projet sélectionné.")
         snapshot = self.server.scan_project()
@@ -42,14 +65,25 @@ class ClientLogic:
     # ---------- Versions ----------
 
     def get_available_versions(self) -> List[str]:
+        """
+        Return a list of all available version identifiers for the current project.
+        """
         if not self.server:
             return []
         return self.server.list_versions()
 
     def select_version(self, version: str) -> None:
+        """
+        Set the currently selected version.
+        Args:
+            version: Version identifier to select.
+        """
         self.selected_version = version
 
     def delete_selected_version(self) -> None:
+        """
+        Delete the currently selected version from the project.
+        """
         if not self.server or not self.selected_version:
             return
         self.server.delete_version(self.selected_version)
@@ -58,17 +92,28 @@ class ClientLogic:
     # ---------- Fichiers ----------
 
     def get_files_from_selected_version(self) -> List[str]:
+        """
+        Return a sorted list of file paths from the currently selected version.
+        """
         if not self.server or not self.selected_version:
             return []
         snapshot = self.server.load_snapshot(self.selected_version)
         return sorted(snapshot.files_content.keys())
 
     def set_selected_files(self, files: List[str]) -> None:
+        """
+        Set the list of currently selected files for export/restore actions.
+        Args:
+            files: List of file paths to select.
+        """
         self.selected_files = files
 
     # ---------- Export sélection ----------
 
     def export_selected_markdown_and_html(self) -> None:
+        """
+        Export the selected files as Markdown and HTML context files.
+        """
         if not self.server or not self.selected_version:
             return
         snapshot = self.server.load_snapshot(self.selected_version)
@@ -77,12 +122,18 @@ class ClientLogic:
     # ---------- Restauration ----------
 
     def restore_full_version(self) -> None:
+        """
+        Restore all files from the currently selected version to the project directory.
+        """
         if not self.server or not self.selected_version:
             return
         snapshot = self.server.load_snapshot(self.selected_version)
         self.server.restore_all(snapshot)
 
     def restore_selected_files(self) -> None:
+        """
+        Restore only the selected files from the current version to the project directory.
+        """
         if not self.server or not self.selected_version:
             return
         snapshot = self.server.load_snapshot(self.selected_version)

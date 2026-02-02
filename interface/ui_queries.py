@@ -7,8 +7,25 @@ from tkinter import ttk, filedialog, messagebox
 from data.queries_manager import QueriesManager
 
 
+"""
+QueriesUI is the Tkinter UI component for managing prompt queries and their versions.
+Handles all widget layout, user input, and delegates logic to QueriesManager/QueriesLogic.
+No business logic is implemented here; all actions are delegated to the appropriate logic classes.
+"""
+
 class QueriesUI(Frame):
+    """
+    UI component for managing prompt queries and their versions.
+    Handles all widget layout, user input, and delegates logic to QueriesManager/QueriesLogic.
+    """
     def __init__(self, parent, manager: QueriesManager, logic):
+        """
+        Initialize the QueriesUI component and build all widgets.
+        Args:
+            parent: The parent Tkinter widget.
+            manager: The QueriesManager instance for data access.
+            logic: The QueriesLogic instance for backend actions.
+        """
         super().__init__(parent)
         self.manager = manager
         self.logic = logic
@@ -39,6 +56,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _build_ui(self):
+        """
+        Build and layout all widgets for the queries management UI.
+        """
         main = ttk.PanedWindow(self, orient="horizontal")
         main.pack(fill=BOTH, expand=True)
 
@@ -175,6 +195,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _refresh_categories(self):
+        """
+        Refresh the categories list and combobox from the manager.
+        """
         self.list_categories.unbind("<<ListboxSelect>>")
 
         cats = self.manager.get_categories()
@@ -196,6 +219,9 @@ class QueriesUI(Frame):
         self.list_queries.bind("<<ListboxSelect>>", self._on_query_selected)
 
     def _refresh_queries(self):
+        """
+        Refresh the queries list from the manager.
+        """
         selected = self.current_query
 
         self.list_queries.delete(0, END)
@@ -205,6 +231,9 @@ class QueriesUI(Frame):
         self._select_in_list(self.list_queries, selected)
 
     def _refresh_versions(self):
+        """
+        Refresh the versions list for the current query.
+        """
         self._lock_versions = True
 
         selected = self.current_version
@@ -219,6 +248,9 @@ class QueriesUI(Frame):
         self._lock_versions = False
 
     def _refresh_editor(self):
+        """
+        Refresh the editor fields for the selected query and version.
+        """
         self._lock_versions = True
 
         # --- Requête sélectionnée ---
@@ -265,6 +297,9 @@ class QueriesUI(Frame):
         self._lock_versions = False
 
     def _select_in_list(self, listbox, value):
+        """
+        Select the given value in the provided listbox, if present.
+        """
         listbox.selection_clear(0, END)
         if not value:
             return
@@ -279,6 +314,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_query_selected(self, event=None):
+        """
+        Handler for selecting a query in the list. Updates version and editor.
+        """
         if event and event.widget is not self.list_queries:
             return
 
@@ -295,6 +333,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_version_selected(self, event=None):
+        """
+        Handler for selecting a version in the list. Updates editor fields.
+        """
         if self._lock_versions:
             return
         if event and event.widget is not self.list_versions:
@@ -332,6 +373,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_add_category(self):
+        """
+        Handler to add a new category via dialog.
+        """
         name = self._ask_string("Nouvelle catégorie", "Nom :")
         if not name:
             return
@@ -339,6 +383,9 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_rename_category(self):
+        """
+        Handler to rename the selected category via dialog.
+        """
         sel = self.list_categories.curselection()
         if not sel:
             return
@@ -350,6 +397,9 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_delete_category(self):
+        """
+        Handler to delete the selected category after confirmation.
+        """
         sel = self.list_categories.curselection()
         if not sel:
             return
@@ -360,6 +410,9 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_import_categories(self):
+        """
+        Handler to import categories from a JSON file.
+        """
         path = filedialog.askopenfilename(title="Importer catégories", filetypes=[("JSON", "*.json")])
         if not path:
             return
@@ -367,12 +420,18 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_export_categories(self):
+        """
+        Handler to export categories to a JSON file.
+        """
         path = filedialog.asksaveasfilename(title="Exporter catégories", defaultextension=".json")
         if not path:
             return
         self.manager.export_categories(path)
 
     def _on_category_selected(self, event=None):
+        """
+        Handler for selecting a category in the list. Updates the category field.
+        """
         if not self.current_query:
             return
         selection = self.list_categories.curselection()
@@ -386,6 +445,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_add_query(self):
+        """
+        Handler to add a new query via dialog.
+        """
         name = self._ask_string("Nouvelle requête", "Nom :")
         if not name:
             return
@@ -397,6 +459,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_rename_query(self):
+        """
+        Handler to rename the selected query via dialog.
+        """
         if not self.current_query:
             return
         new = self._ask_string("Renommer requête", "Nouveau nom :", initial=self.current_query)
@@ -414,6 +479,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_delete_query(self):
+        """
+        Handler to delete the selected query after confirmation.
+        """
         if not self.current_query:
             return
         if not messagebox.askyesno("Supprimer", f"Supprimer la requête '{self.current_query}' ?"):
@@ -426,6 +494,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_import_queries(self):
+        """
+        Handler to import queries from a JSON file.
+        """
         path = filedialog.askopenfilename(title="Importer requêtes", filetypes=[("JSON", "*.json")])
         if not path:
             return
@@ -435,12 +506,18 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_export_queries(self):
+        """
+        Handler to export queries to a JSON file.
+        """
         path = filedialog.asksaveasfilename(title="Exporter requêtes", defaultextension=".json")
         if not path:
             return
         self.manager.export_queries(path)
 
     def _on_memorize_query(self):
+        """
+        Handler to memorize the current query and version for Copilot actions.
+        """
         # Récupérer la requête + version sélectionnées
         query, version = self.get_current_query_and_version()
 
@@ -468,6 +545,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_add_version(self):
+        """
+        Handler to add a new version to the current query.
+        """
         if not self.current_query:
             messagebox.showerror("Erreur", "Sélectionnez une requête.")
             return
@@ -497,6 +577,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_rename_version(self):
+        """
+        Handler to rename the selected version via dialog.
+        """
         if not (self.current_query and self.current_version):
             return
         new = self._ask_string("Renommer version", "Nouveau numéro :", initial=self.current_version)
@@ -516,6 +599,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_delete_version(self):
+        """
+        Handler to delete the selected version after confirmation.
+        """
         if not (self.current_query and self.current_version):
             return
         if not messagebox.askyesno("Supprimer", f"Supprimer la version '{self.current_version}' ?"):
@@ -530,6 +616,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_save_all(self):
+        """
+        Handler to save all changes to the current query and version.
+        """
         if not self.current_query:
             messagebox.showerror("Erreur", "Sélectionnez ou créez une requête.")
             return
@@ -573,10 +662,16 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def get_current_query_and_version(self):
+        """
+        Return the currently selected query and version.
+        """
         return self.current_query, self.current_version
 
 
     def _on_generate_github(self):
+        """
+        Handler to generate and copy the GitHub Copilot prompt for the memorized query/version.
+        """
         # Utiliser la sélection mémorisée dans ApplicationUI
         memo_query = self.logic.ui.memo_query
         memo_version = self.logic.ui.memo_version
@@ -603,6 +698,9 @@ class QueriesUI(Frame):
 
 
     def _on_generate_edge(self):
+        """
+        Handler to generate and copy the Edge Copilot prompt for the memorized query/version.
+        """
         # Utiliser la sélection mémorisée dans ApplicationUI
         memo_query = self.logic.ui.memo_query
         memo_version = self.logic.ui.memo_version
@@ -632,5 +730,14 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _ask_string(self, title: str, prompt: str, initial: str = ""):
+        """
+        Helper to show a string input dialog and return the result.
+        Args:
+            title: Dialog title.
+            prompt: Prompt message.
+            initial: Initial value for the input.
+        Returns:
+            The string entered by the user, or None if cancelled.
+        """
         from tkinter.simpledialog import askstring
         return askstring(title, prompt, initialvalue=initial)

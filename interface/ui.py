@@ -25,8 +25,23 @@ from src.queries_logic import QueriesLogic
 from interface.ui_queries import QueriesUI
 
 
+"""
+ApplicationUI is the main Tkinter-based user interface for the context management tool.
+Handles all widget layout, event binding, and delegates logic to ClientLogic and QueriesLogic.
+No business logic is implemented here; all actions are delegated to the appropriate logic classes.
+"""
+
 class ApplicationUI:
+    """
+    Main application UI class for the context management tool.
+    Handles all Tkinter widget layout, event binding, and delegates logic to ClientLogic and QueriesLogic.
+    """
     def __init__(self, root: Tk):
+        """
+        Initialize the main application UI, set up the theme, logic, and layout.
+        Args:
+            root: The Tkinter root window.
+        """
         self.root = root
         self.root.title("Gestion de contexte projet")
 
@@ -57,6 +72,10 @@ class ApplicationUI:
     #  INITIALISATION MODULE REQUÊTES TYPE
     # -------------------------------------------------------------------------
     def _init_queries_module(self):
+        """
+        Initialize the queries manager and logic for the "requêtes type" (prompt templates) feature.
+        Provides clipboard and file selection callbacks for prompt generation.
+        """
         self.queries_manager = QueriesManager()
 
         def copy_to_clipboard(text: str):
@@ -78,6 +97,9 @@ class ApplicationUI:
     #  LAYOUT GLOBAL : PANEDWINDOW + NOTEBOOK + COLONNE DROITE
     # -------------------------------------------------------------------------
     def _build_layout(self):
+        """
+        Build the main window layout: left = notebook (project & queries), right = files/preview/actions.
+        """
         # PanedWindow horizontal : gauche = Notebook, droite = fichiers/preview
         paned = ttk.PanedWindow(self.root, orient="horizontal")
         paned.pack(fill="both", expand=True)
@@ -119,6 +141,11 @@ class ApplicationUI:
     #  ONGLET PROJET
     # -------------------------------------------------------------------------
     def _build_project_tab(self, parent: Frame):
+        """
+        Build the widgets for the Project tab: project selection, extraction, version management.
+        Args:
+            parent: The parent frame for the project tab.
+        """
         Label(parent, text="Projet", font=("Segoe UI", 11, "bold")).pack(pady=5)
         ttk.Button(parent, text="Sélectionner un dossier", command=self.on_select_project).pack(pady=5)
         ttk.Button(parent, text="Ouvrir le dossier sélectionné", command=self.on_open_folder).pack(pady=5)
@@ -147,6 +174,11 @@ class ApplicationUI:
     #  ONGLET REQUÊTES TYPE
     # -------------------------------------------------------------------------
     def _build_queries_tab(self, parent: Frame):
+        """
+        Build the widgets for the Queries tab (prompt templates management).
+        Args:
+            parent: The parent frame for the queries tab.
+        """
         # On insère directement QueriesUI dans cet onglet
         self.queries_ui = QueriesUI(
             parent,
@@ -159,6 +191,11 @@ class ApplicationUI:
     #  COLONNE DROITE : FICHIERS + PRÉVISUALISATION + ACTIONS
     # -------------------------------------------------------------------------
     def _build_right_column(self, parent: Frame):
+        """
+        Build the right column: file selection, file preview, and file actions.
+        Args:
+            parent: The parent frame for the right column.
+        """
         Label(parent, text="Fichiers de la version sélectionnée", font=("Segoe UI", 11, "bold")).pack(pady=5)
 
         frame_files = Frame(parent)
@@ -194,6 +231,9 @@ class ApplicationUI:
     #  ACTIONS ONGLET PROJET
     # -------------------------------------------------------------------------
     def on_select_project(self):
+        """
+        Handler for selecting a new project folder. Updates project state and version list.
+        """
         folder = filedialog.askdirectory()
         if not folder:
             return
@@ -202,12 +242,18 @@ class ApplicationUI:
         self.refresh_versions()
 
     def on_open_folder(self):
+        """
+        Handler to open the current project folder in the system file explorer.
+        """
         try:
             self.client.open_project_folder()
         except Exception as e:
             messagebox.showerror("Erreur", str(e))
 
     def on_extract_full(self):
+        """
+        Handler to extract (snapshot) the full project and update the version list.
+        """
         if not self.client.has_project():
             messagebox.showerror("Erreur", "Aucun projet sélectionné.")
             return
@@ -217,6 +263,9 @@ class ApplicationUI:
         self.select_version_in_list(version)
 
     def refresh_versions(self):
+        """
+        Refresh the list of available versions in the UI.
+        """
         if self.list_versions is None:
             return
         self.list_versions.delete(0, END)
@@ -225,6 +274,9 @@ class ApplicationUI:
             self.list_versions.insert(END, v)
 
     def on_select_version(self, event=None):
+        """
+        Handler for selecting a version from the list. Updates file list for that version.
+        """
         selection = self.list_versions.curselection()
         if not selection:
             return
@@ -234,6 +286,9 @@ class ApplicationUI:
         self.refresh_files()
 
     def on_restore_full(self):
+        """
+        Handler to restore all files from the selected version.
+        """
         try:
             self.client.restore_full_version()
             messagebox.showinfo("Restauration", "Restauration complète effectuée.")
@@ -241,6 +296,9 @@ class ApplicationUI:
             messagebox.showerror("Erreur", str(e))
 
     def on_delete_version(self):
+        """
+        Handler to delete the selected version and clear file/preview lists.
+        """
         self.client.delete_selected_version()
         self.refresh_versions()
         if self.list_files is not None:
@@ -252,6 +310,9 @@ class ApplicationUI:
     #  ACTIONS COLONNE DROITE
     # -------------------------------------------------------------------------
     def refresh_files(self):
+        """
+        Refresh the file list for the selected version and clear the preview.
+        """
         if self.list_files is None:
             return
         self.list_files.delete(0, END)
@@ -262,6 +323,9 @@ class ApplicationUI:
             self.preview_text.delete(1.0, END)
 
     def on_file_selected(self, event=None):
+        """
+        Handler for selecting a file in the list. Shows the file content in the preview.
+        """
         selection = self.list_files.curselection()
         if not selection:
             self.preview_text.delete(1.0, END)
@@ -277,6 +341,9 @@ class ApplicationUI:
         self.preview_text.insert(END, content)
 
     def on_export_selected(self):
+        """
+        Handler to export selected files as markdown and HTML context files.
+        """
         selected_indices = self.list_files.curselection()
         files = [self.list_files.get(i) for i in selected_indices]
         self.client.set_selected_files(files)
@@ -284,6 +351,9 @@ class ApplicationUI:
         messagebox.showinfo("Export", "selected_context.md et selected_context.html générés.")
 
     def on_restore_selected(self):
+        """
+        Handler to restore only the selected files from the current version.
+        """
         selected_indices = self.list_files.curselection()
         files = [self.list_files.get(i) for i in selected_indices]
         self.client.set_selected_files(files)
@@ -295,8 +365,7 @@ class ApplicationUI:
     # -------------------------------------------------------------------------
     def get_selected_files(self):
         """
-        Utilisé par QueriesLogic pour récupérer les fichiers sélectionnés
-        dans la colonne droite.
+        Return the list of files selected in the right column (used by QueriesLogic for prompt context).
         """
         if self.list_files is None:
             return []
@@ -304,6 +373,11 @@ class ApplicationUI:
         return [self.list_files.get(i) for i in selected_indices]
 
     def select_version_in_list(self, version: str):
+        """
+        Select the given version in the listbox and trigger the associated event.
+        Args:
+            version: The version identifier to select.
+        """
         if self.list_versions is None:
             return
         for i in range(self.list_versions.size()):
