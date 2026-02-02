@@ -4,13 +4,13 @@ from typing import Dict, List, Optional, Any
 
 
 class QueriesManager:
-        """
-        Manages loading, saving, and manipulation of query and category data.
-        Handles:
-            - data/categories.json: list of possible values for the "category" field
-            - data/queries.json: list of all queries and their versions
-        Provides methods for CRUD operations on categories, queries, and versions.
-        """
+    """
+    Manages loading, saving, and manipulation of query and category data.
+    Handles:
+        - data/categories.json: list of possible values for the "category" field
+        - data/queries.json: list of all queries and their versions
+    Provides methods for CRUD operations on categories, queries, and versions.
+    """
 
     def __init__(self, base_dir: Optional[str] = None):
         """

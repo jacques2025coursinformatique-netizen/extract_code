@@ -23,6 +23,7 @@
 </ul><hr>
 <h2>data</h2>
 <h3>Dossiers :</h3><ul>
+<li>queries</li>
 </ul>
 <h3>Fichiers :</h3><ul>
 <li>categories.json</li>
@@ -31,6 +32,11 @@
 <li>queries_manager.py</li>
 <li>utils.py</li>
 <li>__init__.py</li>
+</ul><hr>
+<h2>data\queries</h2>
+<h3>Dossiers :</h3><ul>
+</ul>
+<h3>Fichiers :</h3><ul>
 </ul><hr>
 <h2>interface</h2>
 <h3>Dossiers :</h3><ul>
@@ -147,52 +153,73 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Optional
 
 
-DEFAULT_EXCLUDES = ["venv", "code_source", "archive", ".env",".venv",".git","__pycache__",".python-version","dist","build","main.spec"]
+DEFAULT_EXCLUDES = [
+    "venv", "code_source", "archive", ".env", ".venv", ".git", "__pycache__", ".python-version", "dist", "build", "main.spec"
+]
 
 
 @dataclass
 class ProjectPaths:
+    """
+    Utility class for managing all important file and directory paths for a project.
+    Provides properties for code source, exclusion file, context files, and versioned JSONs.
+    """
     root: str
 
     @property
     def code_source(self) -> str:
+        """Return the path to the code_source directory."""
         return os.path.join(self.root, "code_source")
 
     @property
     def exclude_file(self) -> str:
+        """Return the path to the exclusion rules file."""
         return os.path.join(self.code_source, "exclude.txt")
 
     def organisation_json(self, version: str) -> str:
+        """Return the path to the organisation JSON for a given version."""
         return os.path.join(self.code_source, f"organisation.{version}.json")
 
     def files_content_json(self, version: str) -> str:
+        """Return the path to the files content JSON for a given version."""
         return os.path.join(self.code_source, f"files_content.{version}.json")
 
     @property
     def context_md(self) -> str:
+        """Return the path to the main context Markdown file."""
         return os.path.join(self.code_source, "context.md")
 
     @property
     def context_html(self) -> str:
+        """Return the path to the main context HTML file."""
         return os.path.join(self.code_source, "context.html")
 
     @property
     def selected_context_md(self) -> str:
+        """Return the path to the selected context Markdown file."""
         return os.path.join(self.code_source, "selected_context.md")
 
     @property
     def selected_context_html(self) -> str:
+        """Return the path to the selected context HTML file."""
         return os.path.join(self.code_source, "selected_context.html")
 
 
 @dataclass
 class FileEntry:
+    """
+    Represents a single file's relative path and its content.
+    """
     relative_path: str
     content: str
 
 
 @dataclass
 class ProjectSnapshot:
+    """
+    Represents a snapshot of the project at a given version.
+    Contains the version, folder/file organisation, and file contents.
+    """
     version: str
     organisation: Dict[str, Dict[str, List[str]]]
     files_content: Dict[str, str]
@@ -200,13 +227,25 @@ class ProjectSnapshot:
 
 @dataclass
 class ExclusionRules:
+    """
+    Manages default and custom exclusion rules for files and folders.
+    Used to determine which files/folders should be ignored during project scans.
+    """
     defaults: Set[str] = field(default_factory=lambda: set(DEFAULT_EXCLUDES))
     custom: Set[str] = field(default_factory=set)
 
     def all(self) -> Set[str]:
+        """Return the union of default and custom exclusion rules."""
         return self.defaults.union(self.custom)
 
     def should_exclude(self, name: str) -> bool:
+        """
+        Determine if a file or folder should be excluded based on the rules.
+        Args:
+            name: File or folder name to check.
+        Returns:
+            True if excluded, False otherwise.
+        """
         for ex in self.all():
             if name == ex or name.startswith(ex):
                 return True
@@ -255,12 +294,19 @@ from typing import Dict, List, Optional, Any
 
 class QueriesManager:
     """
-    Gestion des fichiers :
-    - data/categories.json : liste de valeurs possibles pour le champ "category"
-    - data/queries.json : liste de requêtes complètes
+    Manages loading, saving, and manipulation of query and category data.
+    Handles:
+        - data/categories.json: list of possible values for the "category" field
+        - data/queries.json: list of all queries and their versions
+    Provides methods for CRUD operations on categories, queries, and versions.
     """
 
     def __init__(self, base_dir: Optional[str] = None):
+        """
+        Initialize the QueriesManager, loading categories and queries from disk.
+        Args:
+            base_dir: Optional base directory for data files. Defaults to the directory of this file.
+        """
         if base_dir is None:
             data_dir = os.path.dirname(os.path.abspath(__file__))  # .../data
         else:
@@ -282,14 +328,27 @@ class QueriesManager:
     # ------------------------------------------------------------------ #
 
     def load_all(self) -> None:
+        """
+        Load categories and queries from their respective JSON files.
+        """
         self.categories = self._load_categories(self.categories_path)
         self.queries = self._load_queries(self.queries_path)
 
     def save_all(self) -> None:
+        """
+        Save categories and queries to their respective JSON files.
+        """
         self._save_categories(self.categories_path, self.categories)
         self._save_queries(self.queries_path, self.queries)
 
     def _load_categories(self, path: str) -> List[str]:
+        """
+        Load the list of categories from a JSON file.
+        Args:
+            path: Path to the categories JSON file.
+        Returns:
+            List of category strings.
+        """
         if not os.path.exists(path):
             return []
         with open(path, "r", encoding="utf-8") as f:
@@ -301,11 +360,24 @@ class QueriesManager:
         return []
 
     def _save_categories(self, path: str, categories: List[str]) -> None:
+        """
+        Save the list of categories to a JSON file.
+        Args:
+            path: Path to the categories JSON file.
+            categories: List of category strings to save.
+        """
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"categories": categories}, f, indent=4, ensure_ascii=False)
 
     def _load_queries(self, path: str) -> List[Dict[str, Any]]:
+        """
+        Load the list of queries from a JSON file.
+        Args:
+            path: Path to the queries JSON file.
+        Returns:
+            List of query dictionaries.
+        """
         if not os.path.exists(path):
             return []
         with open(path, "r", encoding="utf-8") as f:
@@ -317,6 +389,12 @@ class QueriesManager:
         return []
 
     def _save_queries(self, path: str, queries: List[Dict[str, Any]]) -> None:
+        """
+        Save the list of queries to a JSON file.
+        Args:
+            path: Path to the queries JSON file.
+            queries: List of query dictionaries to save.
+        """
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"queries": queries}, f, indent=4, ensure_ascii=False)
@@ -326,19 +404,38 @@ class QueriesManager:
     # ------------------------------------------------------------------ #
 
     def get_categories(self) -> List[str]:
+        """
+        Return a copy of the list of categories.
+        """
         return list(self.categories)
 
     def add_category(self, name: str) -> None:
+        """
+        Add a new category if it does not already exist.
+        Args:
+            name: Name of the category to add.
+        """
         if name and name not in self.categories:
             self.categories.append(name)
             self.save_all()
 
     def delete_category(self, name: str) -> None:
+        """
+        Delete a category by name.
+        Args:
+            name: Name of the category to delete.
+        """
         if name in self.categories:
             self.categories.remove(name)
             self.save_all()
 
     def rename_category(self, old: str, new: str) -> None:
+        """
+        Rename an existing category.
+        Args:
+            old: Old category name.
+            new: New category name.
+        """
         if old in self.categories and new:
             idx = self.categories.index(old)
             self.categories[idx] = new
@@ -349,15 +446,30 @@ class QueriesManager:
     # ------------------------------------------------------------------ #
 
     def get_all_query_names(self) -> List[str]:
+        """
+        Return a list of all query names.
+        """
         return [q.get("name", "") for q in self.queries]
 
     def get_query(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a query dictionary by name.
+        Args:
+            name: Name of the query to retrieve.
+        Returns:
+            The query dictionary, or None if not found.
+        """
         for q in self.queries:
             if q.get("name") == name:
                 return q
         return None
 
     def add_query(self, name: str) -> None:
+        """
+        Add a new query with the given name if it does not already exist.
+        Args:
+            name: Name of the query to add.
+        """
         if not name:
             return
         if self.get_query(name) is not None:
@@ -374,6 +486,11 @@ class QueriesManager:
         self.save_all()
 
     def delete_query(self, name: str) -> None:
+        """
+        Delete a query by name.
+        Args:
+            name: Name of the query to delete.
+        """
         before = len(self.queries)
         self.queries = [q for q in self.queries if q.get("name") != name]
         if len(self.queries) != before:
@@ -387,6 +504,15 @@ class QueriesManager:
         description: str,
         context_files: str,
     ) -> None:
+        """
+        Update the fields of a query (name, category, description, context_files).
+        Args:
+            old_name: Current name of the query.
+            new_name: New name for the query.
+            category: Category value.
+            description: Description text.
+            context_files: Context files string.
+        """
         q = self.get_query(old_name)
         if not q:
             return
@@ -401,12 +527,27 @@ class QueriesManager:
     # ------------------------------------------------------------------ #
 
     def get_versions_for_query(self, query_name: str) -> List[str]:
+        """
+        Get a list of version numbers for a given query.
+        Args:
+            query_name: Name of the query.
+        Returns:
+            List of version strings.
+        """
         q = self.get_query(query_name)
         if not q:
             return []
         return [v.get("version", "") for v in q.get("versions", [])]
 
     def get_version(self, query_name: str, version_number: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a version dictionary for a given query and version number.
+        Args:
+            query_name: Name of the query.
+            version_number: Version identifier.
+        Returns:
+            The version dictionary, or None if not found.
+        """
         q = self.get_query(query_name)
         if not q:
             return None
@@ -416,6 +557,12 @@ class QueriesManager:
         return None
 
     def add_version(self, query_name: str, version_number: str) -> None:
+        """
+        Add a new version to a query if it does not already exist.
+        Args:
+            query_name: Name of the query.
+            version_number: Version identifier to add.
+        """
         q = self.get_query(query_name)
         if not q or not version_number:
             return
@@ -433,6 +580,12 @@ class QueriesManager:
         self.save_all()
 
     def delete_version(self, query_name: str, version_number: str) -> None:
+        """
+        Delete a version from a query by version number.
+        Args:
+            query_name: Name of the query.
+            version_number: Version identifier to delete.
+        """
         q = self.get_query(query_name)
         if not q:
             return
@@ -450,6 +603,15 @@ class QueriesManager:
         before: str,
         after: str,
     ) -> None:
+        """
+        Update the fields of a version for a given query.
+        Args:
+            query_name: Name of the query.
+            old_version: Current version identifier.
+            new_version: New version identifier.
+            before: New 'before' text.
+            after: New 'after' text.
+        """
         q = self.get_query(query_name)
         if not q:
             return
@@ -637,8 +799,23 @@ from src.queries_logic import QueriesLogic
 from interface.ui_queries import QueriesUI
 
 
+"""
+ApplicationUI is the main Tkinter-based user interface for the context management tool.
+Handles all widget layout, event binding, and delegates logic to ClientLogic and QueriesLogic.
+No business logic is implemented here; all actions are delegated to the appropriate logic classes.
+"""
+
 class ApplicationUI:
+    """
+    Main application UI class for the context management tool.
+    Handles all Tkinter widget layout, event binding, and delegates logic to ClientLogic and QueriesLogic.
+    """
     def __init__(self, root: Tk):
+        """
+        Initialize the main application UI, set up the theme, logic, and layout.
+        Args:
+            root: The Tkinter root window.
+        """
         self.root = root
         self.root.title("Gestion de contexte projet")
 
@@ -669,6 +846,10 @@ class ApplicationUI:
     #  INITIALISATION MODULE REQUÊTES TYPE
     # -------------------------------------------------------------------------
     def _init_queries_module(self):
+        """
+        Initialize the queries manager and logic for the "requêtes type" (prompt templates) feature.
+        Provides clipboard and file selection callbacks for prompt generation.
+        """
         self.queries_manager = QueriesManager()
 
         def copy_to_clipboard(text: str):
@@ -690,6 +871,9 @@ class ApplicationUI:
     #  LAYOUT GLOBAL : PANEDWINDOW + NOTEBOOK + COLONNE DROITE
     # -------------------------------------------------------------------------
     def _build_layout(self):
+        """
+        Build the main window layout: left = notebook (project & queries), right = files/preview/actions.
+        """
         # PanedWindow horizontal : gauche = Notebook, droite = fichiers/preview
         paned = ttk.PanedWindow(self.root, orient="horizontal")
         paned.pack(fill="both", expand=True)
@@ -731,6 +915,11 @@ class ApplicationUI:
     #  ONGLET PROJET
     # -------------------------------------------------------------------------
     def _build_project_tab(self, parent: Frame):
+        """
+        Build the widgets for the Project tab: project selection, extraction, version management.
+        Args:
+            parent: The parent frame for the project tab.
+        """
         Label(parent, text="Projet", font=("Segoe UI", 11, "bold")).pack(pady=5)
         ttk.Button(parent, text="Sélectionner un dossier", command=self.on_select_project).pack(pady=5)
         ttk.Button(parent, text="Ouvrir le dossier sélectionné", command=self.on_open_folder).pack(pady=5)
@@ -759,6 +948,11 @@ class ApplicationUI:
     #  ONGLET REQUÊTES TYPE
     # -------------------------------------------------------------------------
     def _build_queries_tab(self, parent: Frame):
+        """
+        Build the widgets for the Queries tab (prompt templates management).
+        Args:
+            parent: The parent frame for the queries tab.
+        """
         # On insère directement QueriesUI dans cet onglet
         self.queries_ui = QueriesUI(
             parent,
@@ -771,6 +965,11 @@ class ApplicationUI:
     #  COLONNE DROITE : FICHIERS + PRÉVISUALISATION + ACTIONS
     # -------------------------------------------------------------------------
     def _build_right_column(self, parent: Frame):
+        """
+        Build the right column: file selection, file preview, and file actions.
+        Args:
+            parent: The parent frame for the right column.
+        """
         Label(parent, text="Fichiers de la version sélectionnée", font=("Segoe UI", 11, "bold")).pack(pady=5)
 
         frame_files = Frame(parent)
@@ -806,6 +1005,9 @@ class ApplicationUI:
     #  ACTIONS ONGLET PROJET
     # -------------------------------------------------------------------------
     def on_select_project(self):
+        """
+        Handler for selecting a new project folder. Updates project state and version list.
+        """
         folder = filedialog.askdirectory()
         if not folder:
             return
@@ -814,12 +1016,18 @@ class ApplicationUI:
         self.refresh_versions()
 
     def on_open_folder(self):
+        """
+        Handler to open the current project folder in the system file explorer.
+        """
         try:
             self.client.open_project_folder()
         except Exception as e:
             messagebox.showerror("Erreur", str(e))
 
     def on_extract_full(self):
+        """
+        Handler to extract (snapshot) the full project and update the version list.
+        """
         if not self.client.has_project():
             messagebox.showerror("Erreur", "Aucun projet sélectionné.")
             return
@@ -829,6 +1037,9 @@ class ApplicationUI:
         self.select_version_in_list(version)
 
     def refresh_versions(self):
+        """
+        Refresh the list of available versions in the UI.
+        """
         if self.list_versions is None:
             return
         self.list_versions.delete(0, END)
@@ -837,6 +1048,9 @@ class ApplicationUI:
             self.list_versions.insert(END, v)
 
     def on_select_version(self, event=None):
+        """
+        Handler for selecting a version from the list. Updates file list for that version.
+        """
         selection = self.list_versions.curselection()
         if not selection:
             return
@@ -846,6 +1060,9 @@ class ApplicationUI:
         self.refresh_files()
 
     def on_restore_full(self):
+        """
+        Handler to restore all files from the selected version.
+        """
         try:
             self.client.restore_full_version()
             messagebox.showinfo("Restauration", "Restauration complète effectuée.")
@@ -853,6 +1070,9 @@ class ApplicationUI:
             messagebox.showerror("Erreur", str(e))
 
     def on_delete_version(self):
+        """
+        Handler to delete the selected version and clear file/preview lists.
+        """
         self.client.delete_selected_version()
         self.refresh_versions()
         if self.list_files is not None:
@@ -864,6 +1084,9 @@ class ApplicationUI:
     #  ACTIONS COLONNE DROITE
     # -------------------------------------------------------------------------
     def refresh_files(self):
+        """
+        Refresh the file list for the selected version and clear the preview.
+        """
         if self.list_files is None:
             return
         self.list_files.delete(0, END)
@@ -874,6 +1097,9 @@ class ApplicationUI:
             self.preview_text.delete(1.0, END)
 
     def on_file_selected(self, event=None):
+        """
+        Handler for selecting a file in the list. Shows the file content in the preview.
+        """
         selection = self.list_files.curselection()
         if not selection:
             self.preview_text.delete(1.0, END)
@@ -889,6 +1115,9 @@ class ApplicationUI:
         self.preview_text.insert(END, content)
 
     def on_export_selected(self):
+        """
+        Handler to export selected files as markdown and HTML context files.
+        """
         selected_indices = self.list_files.curselection()
         files = [self.list_files.get(i) for i in selected_indices]
         self.client.set_selected_files(files)
@@ -896,6 +1125,9 @@ class ApplicationUI:
         messagebox.showinfo("Export", "selected_context.md et selected_context.html générés.")
 
     def on_restore_selected(self):
+        """
+        Handler to restore only the selected files from the current version.
+        """
         selected_indices = self.list_files.curselection()
         files = [self.list_files.get(i) for i in selected_indices]
         self.client.set_selected_files(files)
@@ -907,8 +1139,7 @@ class ApplicationUI:
     # -------------------------------------------------------------------------
     def get_selected_files(self):
         """
-        Utilisé par QueriesLogic pour récupérer les fichiers sélectionnés
-        dans la colonne droite.
+        Return the list of files selected in the right column (used by QueriesLogic for prompt context).
         """
         if self.list_files is None:
             return []
@@ -916,6 +1147,11 @@ class ApplicationUI:
         return [self.list_files.get(i) for i in selected_indices]
 
     def select_version_in_list(self, version: str):
+        """
+        Select the given version in the listbox and trigger the associated event.
+        Args:
+            version: The version identifier to select.
+        """
         if self.list_versions is None:
             return
         for i in range(self.list_versions.size()):
@@ -938,8 +1174,25 @@ from tkinter import ttk, filedialog, messagebox
 from data.queries_manager import QueriesManager
 
 
+"""
+QueriesUI is the Tkinter UI component for managing prompt queries and their versions.
+Handles all widget layout, user input, and delegates logic to QueriesManager/QueriesLogic.
+No business logic is implemented here; all actions are delegated to the appropriate logic classes.
+"""
+
 class QueriesUI(Frame):
+    """
+    UI component for managing prompt queries and their versions.
+    Handles all widget layout, user input, and delegates logic to QueriesManager/QueriesLogic.
+    """
     def __init__(self, parent, manager: QueriesManager, logic):
+        """
+        Initialize the QueriesUI component and build all widgets.
+        Args:
+            parent: The parent Tkinter widget.
+            manager: The QueriesManager instance for data access.
+            logic: The QueriesLogic instance for backend actions.
+        """
         super().__init__(parent)
         self.manager = manager
         self.logic = logic
@@ -970,6 +1223,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _build_ui(self):
+        """
+        Build and layout all widgets for the queries management UI.
+        """
         main = ttk.PanedWindow(self, orient="horizontal")
         main.pack(fill=BOTH, expand=True)
 
@@ -1106,6 +1362,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _refresh_categories(self):
+        """
+        Refresh the categories list and combobox from the manager.
+        """
         self.list_categories.unbind("<<ListboxSelect>>")
 
         cats = self.manager.get_categories()
@@ -1127,6 +1386,9 @@ class QueriesUI(Frame):
         self.list_queries.bind("<<ListboxSelect>>", self._on_query_selected)
 
     def _refresh_queries(self):
+        """
+        Refresh the queries list from the manager.
+        """
         selected = self.current_query
 
         self.list_queries.delete(0, END)
@@ -1136,6 +1398,9 @@ class QueriesUI(Frame):
         self._select_in_list(self.list_queries, selected)
 
     def _refresh_versions(self):
+        """
+        Refresh the versions list for the current query.
+        """
         self._lock_versions = True
 
         selected = self.current_version
@@ -1150,6 +1415,9 @@ class QueriesUI(Frame):
         self._lock_versions = False
 
     def _refresh_editor(self):
+        """
+        Refresh the editor fields for the selected query and version.
+        """
         self._lock_versions = True
 
         # --- Requête sélectionnée ---
@@ -1196,6 +1464,9 @@ class QueriesUI(Frame):
         self._lock_versions = False
 
     def _select_in_list(self, listbox, value):
+        """
+        Select the given value in the provided listbox, if present.
+        """
         listbox.selection_clear(0, END)
         if not value:
             return
@@ -1210,6 +1481,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_query_selected(self, event=None):
+        """
+        Handler for selecting a query in the list. Updates version and editor.
+        """
         if event and event.widget is not self.list_queries:
             return
 
@@ -1226,6 +1500,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_version_selected(self, event=None):
+        """
+        Handler for selecting a version in the list. Updates editor fields.
+        """
         if self._lock_versions:
             return
         if event and event.widget is not self.list_versions:
@@ -1263,6 +1540,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_add_category(self):
+        """
+        Handler to add a new category via dialog.
+        """
         name = self._ask_string("Nouvelle catégorie", "Nom :")
         if not name:
             return
@@ -1270,6 +1550,9 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_rename_category(self):
+        """
+        Handler to rename the selected category via dialog.
+        """
         sel = self.list_categories.curselection()
         if not sel:
             return
@@ -1281,6 +1564,9 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_delete_category(self):
+        """
+        Handler to delete the selected category after confirmation.
+        """
         sel = self.list_categories.curselection()
         if not sel:
             return
@@ -1291,6 +1577,9 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_import_categories(self):
+        """
+        Handler to import categories from a JSON file.
+        """
         path = filedialog.askopenfilename(title="Importer catégories", filetypes=[("JSON", "*.json")])
         if not path:
             return
@@ -1298,12 +1587,18 @@ class QueriesUI(Frame):
         self._refresh_categories()
 
     def _on_export_categories(self):
+        """
+        Handler to export categories to a JSON file.
+        """
         path = filedialog.asksaveasfilename(title="Exporter catégories", defaultextension=".json")
         if not path:
             return
         self.manager.export_categories(path)
 
     def _on_category_selected(self, event=None):
+        """
+        Handler for selecting a category in the list. Updates the category field.
+        """
         if not self.current_query:
             return
         selection = self.list_categories.curselection()
@@ -1317,6 +1612,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_add_query(self):
+        """
+        Handler to add a new query via dialog.
+        """
         name = self._ask_string("Nouvelle requête", "Nom :")
         if not name:
             return
@@ -1328,6 +1626,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_rename_query(self):
+        """
+        Handler to rename the selected query via dialog.
+        """
         if not self.current_query:
             return
         new = self._ask_string("Renommer requête", "Nouveau nom :", initial=self.current_query)
@@ -1345,6 +1646,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_delete_query(self):
+        """
+        Handler to delete the selected query after confirmation.
+        """
         if not self.current_query:
             return
         if not messagebox.askyesno("Supprimer", f"Supprimer la requête '{self.current_query}' ?"):
@@ -1357,6 +1661,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_import_queries(self):
+        """
+        Handler to import queries from a JSON file.
+        """
         path = filedialog.askopenfilename(title="Importer requêtes", filetypes=[("JSON", "*.json")])
         if not path:
             return
@@ -1366,12 +1673,18 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_export_queries(self):
+        """
+        Handler to export queries to a JSON file.
+        """
         path = filedialog.asksaveasfilename(title="Exporter requêtes", defaultextension=".json")
         if not path:
             return
         self.manager.export_queries(path)
 
     def _on_memorize_query(self):
+        """
+        Handler to memorize the current query and version for Copilot actions.
+        """
         # Récupérer la requête + version sélectionnées
         query, version = self.get_current_query_and_version()
 
@@ -1399,6 +1712,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_add_version(self):
+        """
+        Handler to add a new version to the current query.
+        """
         if not self.current_query:
             messagebox.showerror("Erreur", "Sélectionnez une requête.")
             return
@@ -1428,6 +1744,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_rename_version(self):
+        """
+        Handler to rename the selected version via dialog.
+        """
         if not (self.current_query and self.current_version):
             return
         new = self._ask_string("Renommer version", "Nouveau numéro :", initial=self.current_version)
@@ -1447,6 +1766,9 @@ class QueriesUI(Frame):
         self._refresh_editor()
 
     def _on_delete_version(self):
+        """
+        Handler to delete the selected version after confirmation.
+        """
         if not (self.current_query and self.current_version):
             return
         if not messagebox.askyesno("Supprimer", f"Supprimer la version '{self.current_version}' ?"):
@@ -1461,6 +1783,9 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _on_save_all(self):
+        """
+        Handler to save all changes to the current query and version.
+        """
         if not self.current_query:
             messagebox.showerror("Erreur", "Sélectionnez ou créez une requête.")
             return
@@ -1504,10 +1829,16 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def get_current_query_and_version(self):
+        """
+        Return the currently selected query and version.
+        """
         return self.current_query, self.current_version
 
 
     def _on_generate_github(self):
+        """
+        Handler to generate and copy the GitHub Copilot prompt for the memorized query/version.
+        """
         # Utiliser la sélection mémorisée dans ApplicationUI
         memo_query = self.logic.ui.memo_query
         memo_version = self.logic.ui.memo_version
@@ -1534,6 +1865,9 @@ class QueriesUI(Frame):
 
 
     def _on_generate_edge(self):
+        """
+        Handler to generate and copy the Edge Copilot prompt for the memorized query/version.
+        """
         # Utiliser la sélection mémorisée dans ApplicationUI
         memo_query = self.logic.ui.memo_query
         memo_version = self.logic.ui.memo_version
@@ -1563,6 +1897,15 @@ class QueriesUI(Frame):
     # ------------------------------------------------------------------ #
 
     def _ask_string(self, title: str, prompt: str, initial: str = ""):
+        """
+        Helper to show a string input dialog and return the result.
+        Args:
+            title: Dialog title.
+            prompt: Prompt message.
+            initial: Initial value for the input.
+        Returns:
+            The string entered by the user, or None if cancelled.
+        """
         from tkinter.simpledialog import askstring
         return askstring(title, prompt, initialvalue=initial)
 
@@ -1580,7 +1923,14 @@ from src.server_logic import ServerLogic
 
 
 class ClientLogic:
+    """
+    Orchestrates all front-end logic for project selection, versioning, file selection, and export/restore actions.
+    Delegates backend operations to ServerLogic. Maintains current project, version, and file selection state.
+    """
     def __init__(self):
+        """
+        Initialize the client logic state.
+        """
         self.project_root: Optional[str] = None
         self.server: Optional[ServerLogic] = None
         self.selected_version: Optional[str] = None
@@ -1589,13 +1939,24 @@ class ClientLogic:
     # ---------- Projet ----------
 
     def select_project(self, path: str) -> None:
+        """
+        Set the current project root and initialize the backend server logic.
+        Args:
+            path: Path to the project root directory.
+        """
         self.project_root = path
         self.server = ServerLogic(path)
 
     def has_project(self) -> bool:
+        """
+        Return True if a project is currently selected.
+        """
         return self.server is not None
 
     def open_project_folder(self) -> None:
+        """
+        Open the current project folder in the system file explorer.
+        """
         if not self.project_root:
             return
         if os.name == "nt":  # Windows
@@ -1606,6 +1967,11 @@ class ClientLogic:
     # ---------- Extraction ----------
 
     def extract_full_project(self) -> str:
+        """
+        Scan, snapshot, and export the full project context. Sets the selected version.
+        Returns:
+            The version identifier of the new snapshot.
+        """
         if not self.server:
             raise RuntimeError("Aucun projet sélectionné.")
         snapshot = self.server.scan_project()
@@ -1617,14 +1983,25 @@ class ClientLogic:
     # ---------- Versions ----------
 
     def get_available_versions(self) -> List[str]:
+        """
+        Return a list of all available version identifiers for the current project.
+        """
         if not self.server:
             return []
         return self.server.list_versions()
 
     def select_version(self, version: str) -> None:
+        """
+        Set the currently selected version.
+        Args:
+            version: Version identifier to select.
+        """
         self.selected_version = version
 
     def delete_selected_version(self) -> None:
+        """
+        Delete the currently selected version from the project.
+        """
         if not self.server or not self.selected_version:
             return
         self.server.delete_version(self.selected_version)
@@ -1633,17 +2010,28 @@ class ClientLogic:
     # ---------- Fichiers ----------
 
     def get_files_from_selected_version(self) -> List[str]:
+        """
+        Return a sorted list of file paths from the currently selected version.
+        """
         if not self.server or not self.selected_version:
             return []
         snapshot = self.server.load_snapshot(self.selected_version)
         return sorted(snapshot.files_content.keys())
 
     def set_selected_files(self, files: List[str]) -> None:
+        """
+        Set the list of currently selected files for export/restore actions.
+        Args:
+            files: List of file paths to select.
+        """
         self.selected_files = files
 
     # ---------- Export sélection ----------
 
     def export_selected_markdown_and_html(self) -> None:
+        """
+        Export the selected files as Markdown and HTML context files.
+        """
         if not self.server or not self.selected_version:
             return
         snapshot = self.server.load_snapshot(self.selected_version)
@@ -1652,12 +2040,18 @@ class ClientLogic:
     # ---------- Restauration ----------
 
     def restore_full_version(self) -> None:
+        """
+        Restore all files from the currently selected version to the project directory.
+        """
         if not self.server or not self.selected_version:
             return
         snapshot = self.server.load_snapshot(self.selected_version)
         self.server.restore_all(snapshot)
 
     def restore_selected_files(self) -> None:
+        """
+        Restore only the selected files from the current version to the project directory.
+        """
         if not self.server or not self.selected_version:
             return
         snapshot = self.server.load_snapshot(self.selected_version)
@@ -1675,7 +2069,17 @@ import subprocess
 from data.queries_manager import QueriesManager
 
 
+"""
+QueriesLogic contains all backend logic for prompt building, context file actions, and Copilot query generation.
+This class is responsible for constructing prompts for Copilot (GitHub/Edge), handling context file opening, and clipboard actions.
+It does not access UI state directly and is orchestrated by ClientLogic. All UI dependencies are injected via callbacks.
+"""
+
 class QueriesLogic:
+    """
+    Backend logic for prompt/query management and Copilot integration.
+    Handles prompt construction, clipboard, and context file opening.
+    """
     def __init__(
         self,
         manager: QueriesManager,
@@ -1683,14 +2087,24 @@ class QueriesLogic:
         get_selected_files: Callable[[], List[str]],
         base_path: Optional[str] = None,
     ):
+        """
+        Initialize the QueriesLogic backend.
+        Args:
+            manager: Instance of QueriesManager for data access.
+            copy_to_clipboard: Function to copy text to clipboard (injected from UI layer).
+            get_selected_files: Callback to get selected files from UI (injected from UI layer).
+            base_path: Optional base path for locating context files. Defaults to project root.
+        """
         self.manager = manager
         self.copy_to_clipboard = copy_to_clipboard
         self.get_selected_files = get_selected_files
 
+        # Determine base path for context files (default: project root)
         if base_path is None:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.base_path = base_path
 
+        # Paths to generated context files (HTML and Markdown)
         self.context_html_path = os.path.join(
             self.base_path,
             "code_source",
@@ -1704,12 +2118,22 @@ class QueriesLogic:
         )
 
 
-    # ---------- Construction des requêtes ----------
+    # ---------- Prompt Construction Methods ----------
 
     def build_edge_query(self, query: Dict, version: Dict) -> str:
+        """
+        Build the prompt for Edge Copilot using the selected query and version.
+        The context block is always a fixed message referencing the @selected_context tab.
+        Args:
+            query: The query dictionary (from QueriesManager).
+            version: The version dictionary (from QueriesManager).
+        Returns:
+            The full prompt string for Edge Copilot.
+        """
         before = version.get("before", "").strip()
         after = version.get("after", "").strip()
 
+        # Always include a context block for Edge Copilot
         context_block = (
             "Interface: the context files are available in the @selected_context tab."
         )
@@ -1718,10 +2142,20 @@ class QueriesLogic:
         return "\n\n".join(parts)
 
     def build_github_query(self, query: Dict, version: Dict) -> str:
+        """
+        Build the prompt for GitHub Copilot using the selected query, version, and selected files.
+        The context block lists all selected files, or a message if none are selected.
+        Args:
+            query: The query dictionary (from QueriesManager).
+            version: The version dictionary (from QueriesManager).
+        Returns:
+            The full prompt string for GitHub Copilot.
+        """
         before = version.get("before", "").strip()
         after = version.get("after", "").strip()
 
         selected_files = self.get_selected_files()
+        # Build a context block listing all selected files, or a placeholder if none
         if selected_files:
             context_lines = [f"@{path}" for path in selected_files]
             context_block = "Context files:\n" + "\n".join(context_lines)
@@ -1731,16 +2165,20 @@ class QueriesLogic:
         parts = [p for p in [before, context_block, after] if p]
         return "\n\n".join(parts)
 
-    # ---------- Actions ----------
+    # ---------- Context File and Copilot Actions ----------
 
 
 
     def open_edge_context_html(self) -> None:
-        # Ouvrir le HTML normalement
+        """
+        Open the generated HTML and Markdown context files in the default browser and Edge (if available).
+        Used for Edge Copilot context visualization. Opens HTML in default browser, and tries to open MD in Edge.
+        """
+        # Open HTML in default browser
         if os.path.exists(self.context_html_path):
             webbrowser.open(self.context_html_path)
 
-        # Ouvrir le MD dans Edge (forcer Edge)
+        # Try to open Markdown in Edge (Windows only)
         if os.path.exists(self.context_md_path):
             try:
                 subprocess.Popen([
@@ -1751,6 +2189,12 @@ class QueriesLogic:
 
 
     def generate_edge_copilot(self) -> str:
+        """
+        Generate the Edge Copilot prompt for the currently memorized query and version.
+        Copies the result to clipboard and opens the context HTML/MD files for user reference.
+        Returns:
+            The generated prompt string.
+        """
         query_name = self.ui.memo_query
         query = self.manager.get_query(query_name)
         if query is None:
@@ -1766,6 +2210,12 @@ class QueriesLogic:
         return text
 
     def generate_github_copilot(self) -> str:
+        """
+        Generate the GitHub Copilot prompt for the currently memorized query and version.
+        Copies the result to clipboard for user to paste into Copilot.
+        Returns:
+            The generated prompt string.
+        """
         query_name = self.ui.memo_query
         query = self.manager.get_query(query_name)
         if query is None:
@@ -1797,7 +2247,16 @@ from data.utils import (
 
 
 class ServerLogic:
+    """
+    Handles all backend operations for project file management, versioning, context export, and restoration.
+    Responsible for scanning the project, saving/loading snapshots, exporting context files, and restoring files.
+    """
     def __init__(self, project_root: str):
+        """
+        Initialize the server logic for a given project root directory.
+        Args:
+            project_root: Path to the root of the project.
+        """
         self.paths = ProjectPaths(project_root)
         self.exclusions = ExclusionRules()
         self._ensure_code_source()
@@ -1805,12 +2264,18 @@ class ServerLogic:
     # ---------- Initialisation / exclusions ----------
 
     def _ensure_code_source(self) -> None:
+        """
+        Ensure the code_source directory and exclusion file exist for the project.
+        """
         os.makedirs(self.paths.code_source, exist_ok=True)
         if not os.path.exists(self.paths.exclude_file):
             with open(self.paths.exclude_file, "w", encoding="utf-8") as f:
                 f.write("\n".join(sorted(self.exclusions.defaults)))
 
     def load_exclusions(self) -> None:
+        """
+        Load custom exclusion rules from the exclusion file into the ExclusionRules object.
+        """
         self.exclusions.custom.clear()
         if os.path.exists(self.paths.exclude_file):
             with open(self.paths.exclude_file, "r", encoding="utf-8") as f:
@@ -1822,6 +2287,11 @@ class ServerLogic:
     # ---------- Scan / snapshot ----------
 
     def scan_project(self) -> ProjectSnapshot:
+        """
+        Scan the project directory, applying exclusion rules, and build a snapshot of the current state.
+        Returns:
+            ProjectSnapshot containing the version, organisation, and file contents.
+        """
         self.load_exclusions()
         organisation: Dict[str, Dict[str, List[str]]] = {}
         files_content: Dict[str, str] = {}
@@ -1831,6 +2301,7 @@ class ServerLogic:
             if rel_root == ".":
                 rel_root = ""
 
+            # Exclude directories as needed
             dirs[:] = [d for d in dirs if not self.exclusions.should_exclude(d)]
 
             organisation[rel_root] = {
@@ -1855,10 +2326,22 @@ class ServerLogic:
     # ---------- Sauvegarde / chargement snapshot ----------
 
     def save_snapshot(self, snapshot: ProjectSnapshot) -> None:
+        """
+        Save a project snapshot to disk as JSON files (organisation and file contents).
+        Args:
+            snapshot: The ProjectSnapshot to save.
+        """
         save_json(self.paths.organisation_json(snapshot.version), snapshot.organisation)
         save_json(self.paths.files_content_json(snapshot.version), snapshot.files_content)
 
     def load_snapshot(self, version: str) -> ProjectSnapshot:
+        """
+        Load a project snapshot from disk for a given version.
+        Args:
+            version: Version identifier to load.
+        Returns:
+            ProjectSnapshot for the given version.
+        """
         org = load_json(self.paths.organisation_json(version))
         fc = load_json(self.paths.files_content_json(version))
         return ProjectSnapshot(version=version, organisation=org, files_content=fc)
@@ -1866,6 +2349,11 @@ class ServerLogic:
     # ---------- Exports ----------
 
     def export_full_context(self, snapshot: ProjectSnapshot) -> None:
+        """
+        Export the full project context (all files) as Markdown and HTML files.
+        Args:
+            snapshot: The ProjectSnapshot to export.
+        """
         md = generate_markdown(snapshot)
         html = generate_html(snapshot)
         with open(self.paths.context_md, "w", encoding="utf-8") as f:
@@ -1874,6 +2362,12 @@ class ServerLogic:
             f.write(html)
 
     def export_selected_context(self, snapshot: ProjectSnapshot, selected_files: List[str]) -> None:
+        """
+        Export only the selected files from a snapshot as Markdown and HTML files.
+        Args:
+            snapshot: The ProjectSnapshot to filter and export.
+            selected_files: List of file paths to include in the export.
+        """
         from data.utils import filter_snapshot
         filtered = filter_snapshot(snapshot, selected_files)
         md = generate_markdown(filtered)
@@ -1886,14 +2380,29 @@ class ServerLogic:
     # ---------- Versioning ----------
 
     def list_versions(self) -> List[str]:
+        """
+        List all available version identifiers for the project.
+        Returns:
+            List of version strings.
+        """
         return list_existing_versions(self.paths.code_source)
 
     def delete_version(self, version: str) -> None:
+        """
+        Delete all files associated with a given version.
+        Args:
+            version: Version identifier to delete.
+        """
         delete_version_files(self.paths.code_source, version)
 
     # ---------- Restauration ----------
 
     def restore_all(self, snapshot: ProjectSnapshot) -> None:
+        """
+        Restore all files from a snapshot to the project directory.
+        Args:
+            snapshot: The ProjectSnapshot to restore.
+        """
         for rel_path, content in snapshot.files_content.items():
             abs_path = os.path.join(self.paths.root, rel_path)
             os.makedirs(os.path.dirname(abs_path), exist_ok=True)
@@ -1901,6 +2410,12 @@ class ServerLogic:
                 f.write(content)
 
     def restore_selected(self, snapshot: ProjectSnapshot, selected_files: List[str]) -> None:
+        """
+        Restore only the selected files from a snapshot to the project directory.
+        Args:
+            snapshot: The ProjectSnapshot to restore from.
+            selected_files: List of file paths to restore.
+        """
         selected_set = set(selected_files)
         for rel_path, content in snapshot.files_content.items():
             if rel_path not in selected_set:
