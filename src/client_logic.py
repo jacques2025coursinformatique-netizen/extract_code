@@ -9,25 +9,29 @@ class ClientLogic:
     Orchestrates all front-end logic for project selection, versioning, file selection, and export/restore actions.
     Delegates backend operations to ServerLogic. Maintains current project, version, and file selection state.
     """
-    def __init__(self):
+    def __init__(self,logic):
         """
         Initialize the client logic state.
         """
+        
         self.project_root: Optional[str] = None
         self.server: Optional[ServerLogic] = None
         self.selected_version: Optional[str] = None
         self.selected_files: List[str] = []
+        self.memo_query = None
+        self.memo_version = None
+        self.logic = logic
 
     # ---------- Projet ----------
 
     def select_project(self, path: str) -> None:
-        """
-        Set the current project root and initialize the backend server logic.
-        Args:
-            path: Path to the project root directory.
-        """
         self.project_root = path
         self.server = ServerLogic(path)
+
+        # IMPORTANT : mettre à jour QueriesLogic avec le vrai chemin du projet
+        if self.logic:
+            self.logic.base_path = path
+
 
     def has_project(self) -> bool:
         """
@@ -138,3 +142,28 @@ class ClientLogic:
             return
         snapshot = self.server.load_snapshot(self.selected_version)
         self.server.restore_selected(snapshot, self.selected_files)
+
+    def memorize_query_and_version(self, query, version):
+        self.memo_query = query
+        self.memo_version = version
+
+    def generate_github_copilot(self):
+        selected_files = self.logic.get_selected_files()
+
+        return self.logic.generate_github_copilot(
+            self.memo_query,
+            self.memo_version,
+            selected_files
+        )
+
+    def generate_edge_copilot(self):
+
+        selected_files = self.logic.get_selected_files()
+
+        return self.logic.generate_edge_copilot(
+            self.memo_query,
+            self.memo_version,
+            selected_files
+        )
+
+        

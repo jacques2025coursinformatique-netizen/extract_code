@@ -1,105 +1,49 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset='utf-8'><title>Context</title></head>
-<body>
-<h1>Organisation du projet</h1>
-<h2></h2>
-<h3>Dossiers :</h3><ul>
-<li>.vscode</li>
-<li>data</li>
-<li>interface</li>
-<li>src</li>
-</ul>
-<h3>Fichiers :</h3><ul>
-<li>extract_code.spec</li>
-<li>main.py</li>
-<li>requirements.txt</li>
-</ul><hr>
-<h2>.vscode</h2>
-<h3>Dossiers :</h3><ul>
-</ul>
-<h3>Fichiers :</h3><ul>
-<li>launch.json</li>
-</ul><hr>
-<h2>data</h2>
-<h3>Dossiers :</h3><ul>
-<li>queries</li>
-</ul>
-<h3>Fichiers :</h3><ul>
-<li>categories.json</li>
-<li>models.py</li>
-<li>queries.json</li>
-<li>queries_manager.py</li>
-<li>utils.py</li>
-<li>__init__.py</li>
-</ul><hr>
-<h2>data\queries</h2>
-<h3>Dossiers :</h3><ul>
-</ul>
-<h3>Fichiers :</h3><ul>
-</ul><hr>
-<h2>interface</h2>
-<h3>Dossiers :</h3><ul>
-</ul>
-<h3>Fichiers :</h3><ul>
-<li>ui.py</li>
-<li>ui_queries.py</li>
-<li>__init__.py</li>
-</ul><hr>
-<h2>src</h2>
-<h3>Dossiers :</h3><ul>
-</ul>
-<h3>Fichiers :</h3><ul>
-<li>client_logic.py</li>
-<li>queries_logic.py</li>
-<li>server_logic.py</li>
-<li>__init__.py</li>
-</ul><hr>
-<h1>Contenu des fichiers</h1>
-<h2>extract_code.spec</h2>
-<pre>
-# -*- mode: python ; coding: utf-8 -*-
+# Organisation du projet
 
+## 
+**Dossiers :**
+- .vscode
+- data
+- interface
+- src
 
-a = Analysis(
-    ['main.py'],
-    pathex=[],
-    binaries=[],
-    datas=[],
-    hiddenimports=[],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    noarchive=False,
-    optimize=0,
-)
-pyz = PYZ(a.pure)
+**Fichiers :**
+- main.py
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.datas,
-    [],
-    name='extract_code',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
+---
+## data
+**Dossiers :**
+- queries
 
-</pre>
-<h2>main.py</h2>
-<pre>
+**Fichiers :**
+- models.py
+- queries_manager.py
+- utils.py
+
+---
+## interface
+**Dossiers :**
+
+**Fichiers :**
+- ui.py
+- ui_queries.py
+
+---
+## src
+**Dossiers :**
+
+**Fichiers :**
+- client_logic.py
+- queries_logic.py
+- server_logic.py
+
+---
+
+# Contenu des fichiers
+
+## main.py
+
+```code
 from tkinter import Tk
 from interface.ui import ApplicationUI
 
@@ -112,42 +56,11 @@ def main():
 
 if __name__ == "__main__":
     main()
-</pre>
-<h2>requirements.txt</h2>
-<pre>
-tk
-pyinstaller
-</pre>
-<h2>.vscode\launch.json</h2>
-<pre>
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-    
-        {
-            "name": "Python Debugger: Current File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal"
-        }
-    ]
-}
-</pre>
-<h2>data\categories.json</h2>
-<pre>
-{
-    "categories": [
-        "Mon essai",
-        "eSSAI 2"
-    ]
-}
-</pre>
-<h2>data\models.py</h2>
-<pre>
+```
+
+## data\models.py
+
+```code
 import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Set, Optional
@@ -251,42 +164,11 @@ class ExclusionRules:
                 return True
         return False
 
-</pre>
-<h2>data\queries.json</h2>
-<pre>
-{
-    "queries": [
-        {
-            "name": "Essai",
-            "description": "Ma dexcription",
-            "category": "eSSAI 2",
-            "context_files": "@file1",
-            "versions": [
-                {
-                    "version": "001",
-                    "before": "frerg",
-                    "after": "fgfg"
-                }
-            ]
-        },
-        {
-            "name": "Essai 2",
-            "description": "fsdgdgbdf",
-            "category": "Mon essai",
-            "context_files": "",
-            "versions": [
-                {
-                    "version": "001",
-                    "before": "gghrthrt",
-                    "after": "trhtrshtrshrs"
-                }
-            ]
-        }
-    ]
-}
-</pre>
-<h2>data\queries_manager.py</h2>
-<pre>
+```
+
+## data\queries_manager.py
+
+```code
 import json
 import os
 from typing import Dict, List, Optional, Any
@@ -624,9 +506,11 @@ class QueriesManager:
                 self.save_all()
                 return
 
-</pre>
-<h2>data\utils.py</h2>
-<pre>
+```
+
+## data\utils.py
+
+```code
 import os
 import json
 from typing import Dict, List, Tuple
@@ -687,11 +571,11 @@ def generate_markdown(snapshot: ProjectSnapshot) -> str:
         md += f"## {filepath}\n\n"
 
         # 🔥 Échapper les backticks pour Notion
-        safe_text = text.replace("```", "`` `")
+        safe_text = text.replace("`` `", "`` `")
 
-        md += "```code\n"
+        md += "`` `code\n"
         md += safe_text
-        md += "\n```\n\n"
+        md += "\n`` `\n\n"
 
     return md
 
@@ -765,13 +649,11 @@ def filter_snapshot(snapshot: ProjectSnapshot, selected_files: List[str]) -> Pro
         files_content=filtered_files,
     )
 
-</pre>
-<h2>data\__init__.py</h2>
-<pre>
+```
 
-</pre>
-<h2>interface\ui.py</h2>
-<pre>
+## interface\ui.py
+
+```code
 import os
 from tkinter import (
     Tk,
@@ -823,12 +705,10 @@ class ApplicationUI:
         style = ttk.Style()
         style.theme_use("clam")
 
+        self.client = ClientLogic()
+
         # Manager / logique pour les requêtes type
         self._init_queries_module()
-
-        # ClientLogic peut maintenant recevoir queries_logic
-        self.client = ClientLogic(logic=self.queries_logic)
-
 
         # Widgets principaux
         self.preview_text = None
@@ -847,24 +727,19 @@ class ApplicationUI:
     # -------------------------------------------------------------------------
     #  INITIALISATION MODULE REQUÊTES TYPE
     # -------------------------------------------------------------------------
-    
-    def _get_selected_files(self):
-        if hasattr(self, "list_files"):
-            return [self.list_files.get(i) for i in self.list_files.curselection()]
-        return []
-    
     def _init_queries_module(self):
+        """
+        Initialize the queries manager and logic for the "requêtes type" (prompt templates) feature.
+        Provides clipboard and file selection callbacks for prompt generation.
+        """
         self.queries_manager = QueriesManager()
 
         def copy_to_clipboard(text: str):
-            self.root.focus_force()
             self.root.clipboard_clear()
             self.root.clipboard_append(text)
-            self.root.update()
 
-        # IMPORTANT : ici on appelle la méthode de ApplicationUI
         def get_selected_files():
-            return self._get_selected_files()
+            return self.get_selected_files()
 
         self.queries_logic = QueriesLogic(
             manager=self.queries_manager,
@@ -872,8 +747,7 @@ class ApplicationUI:
             get_selected_files=get_selected_files,
         )
 
-        self.queries_ui = None
-
+        self.queries_ui = None  # sera créé dans le layout
 
     # -------------------------------------------------------------------------
     #  LAYOUT GLOBAL : PANEDWINDOW + NOTEBOOK + COLONNE DROITE
@@ -966,9 +840,7 @@ class ApplicationUI:
             parent,
             manager=self.queries_manager,
             logic=self.queries_logic,
-            client_logic=self.client,
         )
-
         self.queries_ui.pack(fill="both", expand=True, padx=5, pady=5)
 
     # -------------------------------------------------------------------------
@@ -1172,9 +1044,11 @@ class ApplicationUI:
                 self.on_select_version()
                 break
 
-</pre>
-<h2>interface\ui_queries.py</h2>
-<pre>
+```
+
+## interface\ui_queries.py
+
+```code
 from tkinter import (
     Frame, Label, Listbox, Scrollbar, SINGLE, END, BOTH, LEFT, RIGHT, Y,
     Text, StringVar
@@ -1195,7 +1069,7 @@ class QueriesUI(Frame):
     UI component for managing prompt queries and their versions.
     Handles all widget layout, user input, and delegates logic to QueriesManager/QueriesLogic.
     """
-    def __init__(self, parent, manager: QueriesManager, logic, client_logic):
+    def __init__(self, parent, manager: QueriesManager, logic):
         """
         Initialize the QueriesUI component and build all widgets.
         Args:
@@ -1206,7 +1080,6 @@ class QueriesUI(Frame):
         super().__init__(parent)
         self.manager = manager
         self.logic = logic
-        self.client_logic = client_logic
 
         # Sélections courantes
         self.current_query = None
@@ -1514,16 +1387,16 @@ class QueriesUI(Frame):
         """
         Handler for selecting a version in the list. Updates editor fields.
         """
-        # Bloque les callbacks parasites
+        if self._lock_versions:
+            return
         if event and event.widget is not self.list_versions:
             return
 
-        # Si l’événement vient d’ailleurs (sélection de fichier), on ignore
-        if not self.list_versions.curselection():
-            return
-
         sel = self.list_versions.curselection()
-        self.current_version = self.list_versions.get(sel[0])
+        if not sel:
+            self.current_version = None
+        else:
+            self.current_version = self.list_versions.get(sel[0])
 
         # Ici, on ne touche qu’aux champs de version, pas aux listes
         self._lock_versions = True
@@ -1694,25 +1567,28 @@ class QueriesUI(Frame):
 
     def _on_memorize_query(self):
         """
-        Memorize the current query and version inside ClientLogic.
+        Handler to memorize the current query and version for Copilot actions.
         """
+        # Récupérer la requête + version sélectionnées
         query, version = self.get_current_query_and_version()
 
         if not (query and version):
             messagebox.showerror("Erreur", "Sélectionnez d'abord une requête et une version.")
             return
 
-        # Mémorisation dans ClientLogic (pipeline correct)
-        self.client_logic.memorize_query_and_version(query, version)
+        # Mémoriser dans ApplicationUI
+        self.logic.ui.memo_query = query
+        self.logic.ui.memo_version = version
 
+        # Message clair pour guider l'utilisateur
         messagebox.showinfo(
             "Sélection mémorisée",
             "La requête et la version ont été mémorisées.\n\n"
-            "➡️ Sélectionnez maintenant les fichiers dans la colonne de droite.\n"
-            "➡️ Puis cliquez sur : Copier requête GitHub / Copier requête Edge."
+            "➡️ Sélectionnez maintenant les fichiers de la version dans la colonne de droite.\n"
+            "➡️ Puis cliquez sur l’un des boutons :\n"
+            "   - Copier requête GitHub\n"
+            "   - Copier requête Edge"
         )
-
-
 
 
     # ------------------------------------------------------------------ #
@@ -1836,14 +1712,6 @@ class QueriesUI(Frame):
     # GÉNÉRATION
     # ------------------------------------------------------------------ #
 
-    def get_selected_files(self):
-        """
-        Return the list of selected files in the version file list.
-        """
-        if hasattr(self, "list_files"):
-            return [self.list_files.get(i) for i in self.list_files.curselection()]
-        return []
-
     def get_current_query_and_version(self):
         """
         Return the currently selected query and version.
@@ -1853,25 +1721,58 @@ class QueriesUI(Frame):
 
     def _on_generate_github(self):
         """
-        Generate GitHub Copilot prompt through ClientLogic.
+        Handler to generate and copy the GitHub Copilot prompt for the memorized query/version.
         """
-        if not (self.current_query and self.current_version):
-            messagebox.showerror("Erreur", "Sélectionnez une requête et une version.")
+        # Utiliser la sélection mémorisée dans ApplicationUI
+        memo_query = self.logic.ui.memo_query
+        memo_version = self.logic.ui.memo_version
+
+        if not (memo_query and memo_version):
+            messagebox.showerror("Erreur", "Cliquez d'abord sur 'Mémoriser la sélection de la requête' avant de copier.")
             return
 
-        # ClientLogic a déjà la mémorisation → on génère
-        self.client_logic.generate_github_copilot()
+        saved_query = memo_query
+        saved_version = memo_version
+
+
+        # Appeler la génération (sans context_files)
+        self.logic.generate_github_copilot()
+
+        # Restaurer la sélection
+        self.current_query = saved_query
+        self.current_version = saved_version
+
+        # Rafraîchir l’UI
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
 
 
     def _on_generate_edge(self):
         """
-        Generate Edge Copilot prompt through ClientLogic.
+        Handler to generate and copy the Edge Copilot prompt for the memorized query/version.
         """
-        if not (self.current_query and self.current_version):
-            messagebox.showerror("Erreur", "Sélectionnez une requête et une version.")
+        # Utiliser la sélection mémorisée dans ApplicationUI
+        memo_query = self.logic.ui.memo_query
+        memo_version = self.logic.ui.memo_version
+
+        if not (memo_query and memo_version):
+            messagebox.showerror("Erreur", "Cliquez d'abord sur 'Mémoriser la sélection de la requête' avant de copier.")
             return
 
-        self.client_logic.generate_edge_copilot()
+        saved_query = memo_query
+        saved_version = memo_version
+
+
+        self.logic.generate_edge_copilot()
+
+        self.current_query = saved_query
+        self.current_version = saved_version
+
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
 
 
 
@@ -1892,13 +1793,11 @@ class QueriesUI(Frame):
         from tkinter.simpledialog import askstring
         return askstring(title, prompt, initialvalue=initial)
 
-</pre>
-<h2>interface\__init__.py</h2>
-<pre>
+```
 
-</pre>
-<h2>src\client_logic.py</h2>
-<pre>
+## src\client_logic.py
+
+```code
 import os
 import subprocess
 from typing import List, Optional
@@ -1910,29 +1809,25 @@ class ClientLogic:
     Orchestrates all front-end logic for project selection, versioning, file selection, and export/restore actions.
     Delegates backend operations to ServerLogic. Maintains current project, version, and file selection state.
     """
-    def __init__(self,logic):
+    def __init__(self):
         """
         Initialize the client logic state.
         """
-        
         self.project_root: Optional[str] = None
         self.server: Optional[ServerLogic] = None
         self.selected_version: Optional[str] = None
         self.selected_files: List[str] = []
-        self.memo_query = None
-        self.memo_version = None
-        self.logic = logic
 
     # ---------- Projet ----------
 
     def select_project(self, path: str) -> None:
+        """
+        Set the current project root and initialize the backend server logic.
+        Args:
+            path: Path to the project root directory.
+        """
         self.project_root = path
         self.server = ServerLogic(path)
-
-        # IMPORTANT : mettre à jour QueriesLogic avec le vrai chemin du projet
-        if self.logic:
-            self.logic.base_path = path
-
 
     def has_project(self) -> bool:
         """
@@ -2044,33 +1939,11 @@ class ClientLogic:
         snapshot = self.server.load_snapshot(self.selected_version)
         self.server.restore_selected(snapshot, self.selected_files)
 
-    def memorize_query_and_version(self, query, version):
-        self.memo_query = query
-        self.memo_version = version
+```
 
-    def generate_github_copilot(self):
-        selected_files = self.logic.get_selected_files()
+## src\queries_logic.py
 
-        return self.logic.generate_github_copilot(
-            self.memo_query,
-            self.memo_version,
-            selected_files
-        )
-
-    def generate_edge_copilot(self):
-
-        selected_files = self.logic.get_selected_files()
-
-        return self.logic.generate_edge_copilot(
-            self.memo_query,
-            self.memo_version,
-            selected_files
-        )
-
-        
-</pre>
-<h2>src\queries_logic.py</h2>
-<pre>
+```code
 import os
 import webbrowser
 from typing import List, Dict, Callable, Optional
@@ -2111,9 +1984,9 @@ class QueriesLogic:
         self.get_selected_files = get_selected_files
 
         # Determine base path for context files (default: project root)
-        # if base_path is None:
-        #     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.base_path = base_path or os.getcwd()
+        if base_path is None:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.base_path = base_path
 
         # Paths to generated context files (HTML and Markdown)
         self.context_html_path = os.path.join(
@@ -2199,16 +2072,19 @@ class QueriesLogic:
                 print("Erreur ouverture MD dans Edge:", e)
 
 
-    def generate_edge_copilot(self, query_name, version_number, selected_files) -> str:
+    def generate_edge_copilot(self) -> str:
         """
         Generate the Edge Copilot prompt for the currently memorized query and version.
         Copies the result to clipboard and opens the context HTML/MD files for user reference.
         Returns:
             The generated prompt string.
         """
+        query_name = self.ui.memo_query
         query = self.manager.get_query(query_name)
         if query is None:
             return ""
+        
+        version_number = self.ui.memo_version
         version = self.manager.get_version(query_name, version_number)
         if version is None:
             return ""
@@ -2217,31 +2093,31 @@ class QueriesLogic:
         self.copy_to_clipboard(text)
         return text
 
-    def generate_github_copilot(self, query_name, version_number, selected_files) -> str:
+    def generate_github_copilot(self) -> str:
         """
         Generate the GitHub Copilot prompt for the currently memorized query and version.
         Copies the result to clipboard for user to paste into Copilot.
         Returns:
             The generated prompt string.
         """
+        query_name = self.ui.memo_query
         query = self.manager.get_query(query_name)
         if query is None:
             return ""
+        
+        version_number = self.ui.memo_version
         version = self.manager.get_version(query_name, version_number)
         if version is None:
             return ""
-        original_get_selected_files = self.get_selected_files
-        self.get_selected_files = lambda: selected_files
-        try:
-            text = self.build_github_query(query, version)
-        finally:
-            self.get_selected_files = original_get_selected_files
+        text = self.build_github_query(query, version)
         self.copy_to_clipboard(text)
         return text
 
-</pre>
-<h2>src\server_logic.py</h2>
-<pre>
+```
+
+## src\server_logic.py
+
+```code
 import os
 from typing import List, Dict, Tuple
 from data.models import ProjectPaths, ExclusionRules, ProjectSnapshot
@@ -2434,9 +2310,5 @@ class ServerLogic:
             os.makedirs(os.path.dirname(abs_path), exist_ok=True)
             with open(abs_path, "w", encoding="utf-8") as f:
                 f.write(content)
-</pre>
-<h2>src\__init__.py</h2>
-<pre>
+```
 
-</pre>
-</body></html>

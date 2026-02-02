@@ -1,0 +1,55 @@
+{
+    "": {
+        "dirs": [
+            ".vscode",
+            "data",
+            "interface",
+            "src"
+        ],
+        "files": [
+            "extract_code.spec",
+            "main.py",
+            "requirements.txt"
+        ]
+    },
+    ".vscode": {
+        "dirs": [],
+        "files": [
+            "launch.json"
+        ]
+    },
+    "data": {
+        "dirs": [
+            "queries"
+        ],
+        "files": [
+            "categories.json",
+            "models.py",
+            "queries.json",
+            "queries_manager.py",
+            "utils.py",
+            "__init__.py"
+        ]
+    },
+    "data\\queries": {
+        "dirs": [],
+        "files": []
+    },
+    "interface": {
+        "dirs": [],
+        "files": [
+            "ui.py",
+            "ui_queries.py",
+            "__init__.py"
+        ]
+    },
+    "src": {
+        "dirs": [],
+        "files": [
+            "client_logic.py",
+            "queries_logic.py",
+            "server_logic.py",
+            "__init__.py"
+        ]
+    }
+}

@@ -18,7 +18,7 @@ class QueriesUI(Frame):
     UI component for managing prompt queries and their versions.
     Handles all widget layout, user input, and delegates logic to QueriesManager/QueriesLogic.
     """
-    def __init__(self, parent, manager: QueriesManager, logic):
+    def __init__(self, parent, manager: QueriesManager, logic, client_logic):
         """
         Initialize the QueriesUI component and build all widgets.
         Args:
@@ -29,6 +29,7 @@ class QueriesUI(Frame):
         super().__init__(parent)
         self.manager = manager
         self.logic = logic
+        self.client_logic = client_logic
 
         # Sélections courantes
         self.current_query = None
@@ -336,16 +337,16 @@ class QueriesUI(Frame):
         """
         Handler for selecting a version in the list. Updates editor fields.
         """
-        if self._lock_versions:
-            return
+        # Bloque les callbacks parasites
         if event and event.widget is not self.list_versions:
             return
 
+        # Si l’événement vient d’ailleurs (sélection de fichier), on ignore
+        if not self.list_versions.curselection():
+            return
+
         sel = self.list_versions.curselection()
-        if not sel:
-            self.current_version = None
-        else:
-            self.current_version = self.list_versions.get(sel[0])
+        self.current_version = self.list_versions.get(sel[0])
 
         # Ici, on ne touche qu’aux champs de version, pas aux listes
         self._lock_versions = True
@@ -516,28 +517,25 @@ class QueriesUI(Frame):
 
     def _on_memorize_query(self):
         """
-        Handler to memorize the current query and version for Copilot actions.
+        Memorize the current query and version inside ClientLogic.
         """
-        # Récupérer la requête + version sélectionnées
         query, version = self.get_current_query_and_version()
 
         if not (query and version):
             messagebox.showerror("Erreur", "Sélectionnez d'abord une requête et une version.")
             return
 
-        # Mémoriser dans ApplicationUI
-        self.logic.ui.memo_query = query
-        self.logic.ui.memo_version = version
+        # Mémorisation dans ClientLogic (pipeline correct)
+        self.client_logic.memorize_query_and_version(query, version)
 
-        # Message clair pour guider l'utilisateur
         messagebox.showinfo(
             "Sélection mémorisée",
             "La requête et la version ont été mémorisées.\n\n"
-            "➡️ Sélectionnez maintenant les fichiers de la version dans la colonne de droite.\n"
-            "➡️ Puis cliquez sur l’un des boutons :\n"
-            "   - Copier requête GitHub\n"
-            "   - Copier requête Edge"
+            "➡️ Sélectionnez maintenant les fichiers dans la colonne de droite.\n"
+            "➡️ Puis cliquez sur : Copier requête GitHub / Copier requête Edge."
         )
+
+
 
 
     # ------------------------------------------------------------------ #
@@ -661,6 +659,14 @@ class QueriesUI(Frame):
     # GÉNÉRATION
     # ------------------------------------------------------------------ #
 
+    def get_selected_files(self):
+        """
+        Return the list of selected files in the version file list.
+        """
+        if hasattr(self, "list_files"):
+            return [self.list_files.get(i) for i in self.list_files.curselection()]
+        return []
+
     def get_current_query_and_version(self):
         """
         Return the currently selected query and version.
@@ -670,58 +676,25 @@ class QueriesUI(Frame):
 
     def _on_generate_github(self):
         """
-        Handler to generate and copy the GitHub Copilot prompt for the memorized query/version.
+        Generate GitHub Copilot prompt through ClientLogic.
         """
-        # Utiliser la sélection mémorisée dans ApplicationUI
-        memo_query = self.logic.ui.memo_query
-        memo_version = self.logic.ui.memo_version
-
-        if not (memo_query and memo_version):
-            messagebox.showerror("Erreur", "Cliquez d'abord sur 'Mémoriser la sélection de la requête' avant de copier.")
+        if not (self.current_query and self.current_version):
+            messagebox.showerror("Erreur", "Sélectionnez une requête et une version.")
             return
 
-        saved_query = memo_query
-        saved_version = memo_version
-
-
-        # Appeler la génération (sans context_files)
-        self.logic.generate_github_copilot()
-
-        # Restaurer la sélection
-        self.current_query = saved_query
-        self.current_version = saved_version
-
-        # Rafraîchir l’UI
-        self._refresh_queries()
-        self._refresh_versions()
-        self._refresh_editor()
+        # ClientLogic a déjà la mémorisation → on génère
+        self.client_logic.generate_github_copilot()
 
 
     def _on_generate_edge(self):
         """
-        Handler to generate and copy the Edge Copilot prompt for the memorized query/version.
+        Generate Edge Copilot prompt through ClientLogic.
         """
-        # Utiliser la sélection mémorisée dans ApplicationUI
-        memo_query = self.logic.ui.memo_query
-        memo_version = self.logic.ui.memo_version
-
-        if not (memo_query and memo_version):
-            messagebox.showerror("Erreur", "Cliquez d'abord sur 'Mémoriser la sélection de la requête' avant de copier.")
+        if not (self.current_query and self.current_version):
+            messagebox.showerror("Erreur", "Sélectionnez une requête et une version.")
             return
 
-        saved_query = memo_query
-        saved_version = memo_version
-
-
-        self.logic.generate_edge_copilot()
-
-        self.current_query = saved_query
-        self.current_version = saved_version
-
-        self._refresh_queries()
-        self._refresh_versions()
-        self._refresh_editor()
-
+        self.client_logic.generate_edge_copilot()
 
 
 

@@ -11,22 +11,49 @@
 <li>src</li>
 </ul>
 <h3>Fichiers :</h3><ul>
-<li>main.py</li>
+<li>extract_code.spec</li>
 </ul><hr>
 <h1>Contenu des fichiers</h1>
-<h2>main.py</h2>
+<h2>extract_code.spec</h2>
 <pre>
-from tkinter import Tk
-from interface.ui import ApplicationUI
+# -*- mode: python ; coding: utf-8 -*-
 
 
-def main():
-    root = Tk()
-    app = ApplicationUI(root)
-    root.mainloop()
+a = Analysis(
+    ['main.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
+)
+pyz = PYZ(a.pure)
 
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name='extract_code',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
 
-if __name__ == "__main__":
-    main()
 </pre>
 </body></html>

@@ -49,10 +49,12 @@ class ApplicationUI:
         style = ttk.Style()
         style.theme_use("clam")
 
-        self.client = ClientLogic()
-
         # Manager / logique pour les requêtes type
         self._init_queries_module()
+
+        # ClientLogic peut maintenant recevoir queries_logic
+        self.client = ClientLogic(logic=self.queries_logic)
+
 
         # Widgets principaux
         self.preview_text = None
@@ -71,19 +73,24 @@ class ApplicationUI:
     # -------------------------------------------------------------------------
     #  INITIALISATION MODULE REQUÊTES TYPE
     # -------------------------------------------------------------------------
+    
+    def _get_selected_files(self):
+        if hasattr(self, "list_files"):
+            return [self.list_files.get(i) for i in self.list_files.curselection()]
+        return []
+    
     def _init_queries_module(self):
-        """
-        Initialize the queries manager and logic for the "requêtes type" (prompt templates) feature.
-        Provides clipboard and file selection callbacks for prompt generation.
-        """
         self.queries_manager = QueriesManager()
 
         def copy_to_clipboard(text: str):
+            self.root.focus_force()
             self.root.clipboard_clear()
             self.root.clipboard_append(text)
+            self.root.update()
 
+        # IMPORTANT : ici on appelle la méthode de ApplicationUI
         def get_selected_files():
-            return self.get_selected_files()
+            return self._get_selected_files()
 
         self.queries_logic = QueriesLogic(
             manager=self.queries_manager,
@@ -91,7 +98,8 @@ class ApplicationUI:
             get_selected_files=get_selected_files,
         )
 
-        self.queries_ui = None  # sera créé dans le layout
+        self.queries_ui = None
+
 
     # -------------------------------------------------------------------------
     #  LAYOUT GLOBAL : PANEDWINDOW + NOTEBOOK + COLONNE DROITE
@@ -184,7 +192,9 @@ class ApplicationUI:
             parent,
             manager=self.queries_manager,
             logic=self.queries_logic,
+            client_logic=self.client,
         )
+
         self.queries_ui.pack(fill="both", expand=True, padx=5, pady=5)
 
     # -------------------------------------------------------------------------

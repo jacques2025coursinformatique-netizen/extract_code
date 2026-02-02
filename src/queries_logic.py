@@ -38,9 +38,9 @@ class QueriesLogic:
         self.get_selected_files = get_selected_files
 
         # Determine base path for context files (default: project root)
-        if base_path is None:
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.base_path = base_path
+        # if base_path is None:
+        #     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.base_path = base_path or os.getcwd()
 
         # Paths to generated context files (HTML and Markdown)
         self.context_html_path = os.path.join(
@@ -126,19 +126,16 @@ class QueriesLogic:
                 print("Erreur ouverture MD dans Edge:", e)
 
 
-    def generate_edge_copilot(self) -> str:
+    def generate_edge_copilot(self, query_name, version_number, selected_files) -> str:
         """
         Generate the Edge Copilot prompt for the currently memorized query and version.
         Copies the result to clipboard and opens the context HTML/MD files for user reference.
         Returns:
             The generated prompt string.
         """
-        query_name = self.ui.memo_query
         query = self.manager.get_query(query_name)
         if query is None:
             return ""
-        
-        version_number = self.ui.memo_version
         version = self.manager.get_version(query_name, version_number)
         if version is None:
             return ""
@@ -147,22 +144,24 @@ class QueriesLogic:
         self.copy_to_clipboard(text)
         return text
 
-    def generate_github_copilot(self) -> str:
+    def generate_github_copilot(self, query_name, version_number, selected_files) -> str:
         """
         Generate the GitHub Copilot prompt for the currently memorized query and version.
         Copies the result to clipboard for user to paste into Copilot.
         Returns:
             The generated prompt string.
         """
-        query_name = self.ui.memo_query
         query = self.manager.get_query(query_name)
         if query is None:
             return ""
-        
-        version_number = self.ui.memo_version
         version = self.manager.get_version(query_name, version_number)
         if version is None:
             return ""
-        text = self.build_github_query(query, version)
+        original_get_selected_files = self.get_selected_files
+        self.get_selected_files = lambda: selected_files
+        try:
+            text = self.build_github_query(query, version)
+        finally:
+            self.get_selected_files = original_get_selected_files
         self.copy_to_clipboard(text)
         return text

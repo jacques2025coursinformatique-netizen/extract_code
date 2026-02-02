@@ -3,7 +3,7 @@
         {
             "name": "Essai",
             "description": "Ma dexcription",
-            "category": "Mon essai",
+            "category": "eSSAI 2",
             "context_files": "@file1",
             "versions": [
                 {
@@ -16,7 +16,7 @@
         {
             "name": "Essai 2",
             "description": "fsdgdgbdf",
-            "category": "eSSAI 2",
+            "category": "Mon essai",
             "context_files": "",
             "versions": [
                 {
