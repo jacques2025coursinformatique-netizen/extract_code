@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Optional
 
 
-DEFAULT_EXCLUDES = ["venv", "code_source", "archive", ".env",".venv",".git","__pycache__",".python-version"]
+DEFAULT_EXCLUDES = ["venv", "code_source", "archive", ".env",".venv",".git","__pycache__",".python-version","dist","build","main.spec"]
 
 
 @dataclass

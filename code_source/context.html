@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'><title>Context</title></head>
+<body>
+<h1>Organisation du projet</h1>
+<h2></h2>
+<h3>Dossiers :</h3><ul>
+<li>.vscode</li>
+<li>data</li>
+<li>interface</li>
+<li>src</li>
+</ul>
+<h3>Fichiers :</h3><ul>
+<li>extract_code.spec</li>
+<li>main.py</li>
+<li>requirements.txt</li>
+</ul><hr>
+<h2>.vscode</h2>
+<h3>Dossiers :</h3><ul>
+</ul>
+<h3>Fichiers :</h3><ul>
+<li>launch.json</li>
+</ul><hr>
+<h2>data</h2>
+<h3>Dossiers :</h3><ul>
+</ul>
+<h3>Fichiers :</h3><ul>
+<li>categories.json</li>
+<li>models.py</li>
+<li>queries.json</li>
+<li>queries_manager.py</li>
+<li>utils.py</li>
+<li>__init__.py</li>
+</ul><hr>
+<h2>interface</h2>
+<h3>Dossiers :</h3><ul>
+</ul>
+<h3>Fichiers :</h3><ul>
+<li>ui.py</li>
+<li>ui_queries.py</li>
+<li>__init__.py</li>
+</ul><hr>
+<h2>src</h2>
+<h3>Dossiers :</h3><ul>
+</ul>
+<h3>Fichiers :</h3><ul>
+<li>client_logic.py</li>
+<li>queries_logic.py</li>
+<li>server_logic.py</li>
+<li>__init__.py</li>
+</ul><hr>
+<h1>Contenu des fichiers</h1>
+<h2>extract_code.spec</h2>
+<pre>
+# -*- mode: python ; coding: utf-8 -*-
+
+
+a = Analysis(
+    ['main.py'],
+    pathex=[],
+    binaries=[],
+    datas=[],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
+)
+pyz = PYZ(a.pure)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name='extract_code',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+)
+
+</pre>
+<h2>main.py</h2>
+<pre>
+from tkinter import Tk
+from interface.ui import ApplicationUI
+
+
+def main():
+    root = Tk()
+    app = ApplicationUI(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+<h2>requirements.txt</h2>
+<pre>
+tk
+pyinstaller
+</pre>
+<h2>.vscode\launch.json</h2>
+<pre>
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal"
+        }
+    ]
+}
+</pre>
+<h2>data\categories.json</h2>
+<pre>
+{
+    "categories": [
+        "Mon essai",
+        "eSSAI 2"
+    ]
+}
+</pre>
+<h2>data\models.py</h2>
+<pre>
+import os
+from dataclasses import dataclass, field
+from typing import Dict, List, Set, Optional
+
+
+DEFAULT_EXCLUDES = ["venv", "code_source", "archive", ".env",".venv",".git","__pycache__",".python-version","dist","build","main.spec"]
+
+
+@dataclass
+class ProjectPaths:
+    root: str
+
+    @property
+    def code_source(self) -> str:
+        return os.path.join(self.root, "code_source")
+
+    @property
+    def exclude_file(self) -> str:
+        return os.path.join(self.code_source, "exclude.txt")
+
+    def organisation_json(self, version: str) -> str:
+        return os.path.join(self.code_source, f"organisation.{version}.json")
+
+    def files_content_json(self, version: str) -> str:
+        return os.path.join(self.code_source, f"files_content.{version}.json")
+
+    @property
+    def context_md(self) -> str:
+        return os.path.join(self.code_source, "context.md")
+
+    @property
+    def context_html(self) -> str:
+        return os.path.join(self.code_source, "context.html")
+
+    @property
+    def selected_context_md(self) -> str:
+        return os.path.join(self.code_source, "selected_context.md")
+
+    @property
+    def selected_context_html(self) -> str:
+        return os.path.join(self.code_source, "selected_context.html")
+
+
+@dataclass
+class FileEntry:
+    relative_path: str
+    content: str
+
+
+@dataclass
+class ProjectSnapshot:
+    version: str
+    organisation: Dict[str, Dict[str, List[str]]]
+    files_content: Dict[str, str]
+
+
+@dataclass
+class ExclusionRules:
+    defaults: Set[str] = field(default_factory=lambda: set(DEFAULT_EXCLUDES))
+    custom: Set[str] = field(default_factory=set)
+
+    def all(self) -> Set[str]:
+        return self.defaults.union(self.custom)
+
+    def should_exclude(self, name: str) -> bool:
+        for ex in self.all():
+            if name == ex or name.startswith(ex):
+                return True
+        return False
+
+</pre>
+<h2>data\queries.json</h2>
+<pre>
+{
+    "queries": [
+        {
+            "name": "Essai",
+            "description": "Ma dexcription",
+            "category": "Mon essai",
+            "context_files": "@file1",
+            "versions": [
+                {
+                    "version": "001",
+                    "before": "frerg",
+                    "after": "fgfg"
+                }
+            ]
+        },
+        {
+            "name": "Essai 2",
+            "description": "fsdgdgbdf",
+            "category": "eSSAI 2",
+            "context_files": "",
+            "versions": [
+                {
+                    "version": "001",
+                    "before": "gghrthrt",
+                    "after": "trhtrshtrshrs"
+                }
+            ]
+        }
+    ]
+}
+</pre>
+<h2>data\queries_manager.py</h2>
+<pre>
+import json
+import os
+from typing import Dict, List, Optional, Any
+
+
+class QueriesManager:
+    """
+    Gestion des fichiers :
+    - data/categories.json : liste de valeurs possibles pour le champ "category"
+    - data/queries.json : liste de requêtes complètes
+    """
+
+    def __init__(self, base_dir: Optional[str] = None):
+        if base_dir is None:
+            data_dir = os.path.dirname(os.path.abspath(__file__))  # .../data
+        else:
+            if os.path.basename(base_dir) == "data":
+                data_dir = base_dir
+            else:
+                data_dir = os.path.join(base_dir, "data")
+
+        self.categories_path = os.path.join(data_dir, "categories.json")
+        self.queries_path = os.path.join(data_dir, "queries.json")
+
+        self.categories: List[str] = []
+        self.queries: List[Dict[str, Any]] = []
+
+        self.load_all()
+
+    # ------------------------------------------------------------------ #
+    # Chargement / sauvegarde
+    # ------------------------------------------------------------------ #
+
+    def load_all(self) -> None:
+        self.categories = self._load_categories(self.categories_path)
+        self.queries = self._load_queries(self.queries_path)
+
+    def save_all(self) -> None:
+        self._save_categories(self.categories_path, self.categories)
+        self._save_queries(self.queries_path, self.queries)
+
+    def _load_categories(self, path: str) -> List[str]:
+        if not os.path.exists(path):
+            return []
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict) and "categories" in data:
+            return list(data["categories"])
+        if isinstance(data, list):
+            return data
+        return []
+
+    def _save_categories(self, path: str, categories: List[str]) -> None:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({"categories": categories}, f, indent=4, ensure_ascii=False)
+
+    def _load_queries(self, path: str) -> List[Dict[str, Any]]:
+        if not os.path.exists(path):
+            return []
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict) and "queries" in data:
+            return list(data["queries"])
+        if isinstance(data, list):
+            return data
+        return []
+
+    def _save_queries(self, path: str, queries: List[Dict[str, Any]]) -> None:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({"queries": queries}, f, indent=4, ensure_ascii=False)
+
+    # ------------------------------------------------------------------ #
+    # Catégories (liste de valeurs possibles)
+    # ------------------------------------------------------------------ #
+
+    def get_categories(self) -> List[str]:
+        return list(self.categories)
+
+    def add_category(self, name: str) -> None:
+        if name and name not in self.categories:
+            self.categories.append(name)
+            self.save_all()
+
+    def delete_category(self, name: str) -> None:
+        if name in self.categories:
+            self.categories.remove(name)
+            self.save_all()
+
+    def rename_category(self, old: str, new: str) -> None:
+        if old in self.categories and new:
+            idx = self.categories.index(old)
+            self.categories[idx] = new
+            self.save_all()
+
+    # ------------------------------------------------------------------ #
+    # Requêtes
+    # ------------------------------------------------------------------ #
+
+    def get_all_query_names(self) -> List[str]:
+        return [q.get("name", "") for q in self.queries]
+
+    def get_query(self, name: str) -> Optional[Dict[str, Any]]:
+        for q in self.queries:
+            if q.get("name") == name:
+                return q
+        return None
+
+    def add_query(self, name: str) -> None:
+        if not name:
+            return
+        if self.get_query(name) is not None:
+            return
+        self.queries.append(
+            {
+                "name": name,
+                "description": "",
+                "category": "",
+                "context_files": "",
+                "versions": [],
+            }
+        )
+        self.save_all()
+
+    def delete_query(self, name: str) -> None:
+        before = len(self.queries)
+        self.queries = [q for q in self.queries if q.get("name") != name]
+        if len(self.queries) != before:
+            self.save_all()
+
+    def update_query_fields(
+        self,
+        old_name: str,
+        new_name: str,
+        category: str,
+        description: str,
+        context_files: str,
+    ) -> None:
+        q = self.get_query(old_name)
+        if not q:
+            return
+        q["name"] = new_name or old_name
+        q["category"] = category or ""
+        q["description"] = description or ""
+        q["context_files"] = context_files or ""
+        self.save_all()
+
+    # ------------------------------------------------------------------ #
+    # Versions
+    # ------------------------------------------------------------------ #
+
+    def get_versions_for_query(self, query_name: str) -> List[str]:
+        q = self.get_query(query_name)
+        if not q:
+            return []
+        return [v.get("version", "") for v in q.get("versions", [])]
+
+    def get_version(self, query_name: str, version_number: str) -> Optional[Dict[str, Any]]:
+        q = self.get_query(query_name)
+        if not q:
+            return None
+        for v in q.get("versions", []):
+            if v.get("version") == version_number:
+                return v
+        return None
+
+    def add_version(self, query_name: str, version_number: str) -> None:
+        q = self.get_query(query_name)
+        if not q or not version_number:
+            return
+        versions = q.setdefault("versions", [])
+        for v in versions:
+            if v.get("version") == version_number:
+                return
+        versions.append(
+            {
+                "version": version_number,
+                "before": "",
+                "after": "",
+            }
+        )
+        self.save_all()
+
+    def delete_version(self, query_name: str, version_number: str) -> None:
+        q = self.get_query(query_name)
+        if not q:
+            return
+        versions = q.get("versions", [])
+        new_versions = [v for v in versions if v.get("version") != version_number]
+        if len(new_versions) != len(versions):
+            q["versions"] = new_versions
+            self.save_all()
+
+    def update_version(
+        self,
+        query_name: str,
+        old_version: str,
+        new_version: str,
+        before: str,
+        after: str,
+    ) -> None:
+        q = self.get_query(query_name)
+        if not q:
+            return
+        versions = q.setdefault("versions", [])
+        for v in versions:
+            if v.get("version") == old_version:
+                v["version"] = new_version or old_version
+                v["before"] = before or ""
+                v["after"] = after or ""
+                self.save_all()
+                return
+
+</pre>
+<h2>data\utils.py</h2>
+<pre>
+import os
+import json
+from typing import Dict, List, Tuple
+from .models import ProjectSnapshot
+
+
+def load_json(path: str) -> Dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_json(path: str, data: Dict) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+
+def list_existing_versions(code_source_dir: str) -> List[str]:
+    if not os.path.isdir(code_source_dir):
+        return []
+    versions = set()
+    for name in os.listdir(code_source_dir):
+        if name.startswith("organisation.") and name.endswith(".json"):
+            middle = name[len("organisation."):-len(".json")]
+            versions.add(middle)
+    return sorted(versions)
+
+
+def get_next_version_number(code_source_dir: str) -> str:
+    versions = list_existing_versions(code_source_dir)
+    if not versions:
+        return "001"
+    last = max(int(v) for v in versions)
+    return f"{last + 1:03d}"
+
+
+def delete_version_files(code_source_dir: str, version: str) -> None:
+    org = os.path.join(code_source_dir, f"organisation.{version}.json")
+    fc = os.path.join(code_source_dir, f"files_content.{version}.json")
+    for path in (org, fc):
+        if os.path.exists(path):
+            os.remove(path)
+
+
+def generate_markdown(snapshot: ProjectSnapshot) -> str:
+    md = "# Organisation du projet\n\n"
+    for folder, content in snapshot.organisation.items():
+        md += f"## {folder}\n"
+        md += "**Dossiers :**\n"
+        for d in content.get("dirs", []):
+            md += f"- {d}\n"
+        md += "\n**Fichiers :**\n"
+        for f in content.get("files", []):
+            md += f"- {f}\n"
+        md += "\n---\n"
+
+    md += "\n# Contenu des fichiers\n\n"
+    for filepath, text in snapshot.files_content.items():
+        md += f"## {filepath}\n\n"
+
+        # 🔥 Échapper les backticks pour Notion
+        safe_text = text.replace("```", "`` `")
+
+        md += "```code\n"
+        md += safe_text
+        md += "\n```\n\n"
+
+    return md
+
+
+
+def generate_html(snapshot: ProjectSnapshot) -> str:
+    """
+    Version adaptée à Copilot :
+    - HTML simple, non échappé
+    - structure proche du Markdown
+    - lisible comme un document texte dans Edge
+    """
+    parts: List[str] = []
+    parts.append("<!DOCTYPE html>")
+    parts.append("<html>")
+    parts.append("<head><meta charset='utf-8'><title>Context</title></head>")
+    parts.append("<body>")
+    parts.append("<h1>Organisation du projet</h1>")
+
+    for folder, content in snapshot.organisation.items():
+        parts.append(f"<h2>{folder}</h2>")
+        parts.append("<h3>Dossiers :</h3><ul>")
+        for d in content.get("dirs", []):
+            parts.append(f"<li>{d}</li>")
+        parts.append("</ul>")
+        parts.append("<h3>Fichiers :</h3><ul>")
+        for f in content.get("files", []):
+            parts.append(f"<li>{f}</li>")
+        parts.append("</ul><hr>")
+
+    parts.append("<h1>Contenu des fichiers</h1>")
+    for filepath, text in snapshot.files_content.items():
+        parts.append(f"<h2>{filepath}</h2>")
+        parts.append("<pre>")
+        parts.append(text)
+        parts.append("</pre>")
+
+    parts.append("</body></html>")
+    return "\n".join(parts)
+
+
+def escape_html(text: str) -> str:
+    # Gardée pour compatibilité éventuelle, mais plus utilisée dans generate_html
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
+
+
+def filter_snapshot(snapshot: ProjectSnapshot, selected_files: List[str]) -> ProjectSnapshot:
+    selected_set = set(selected_files)
+    filtered_files = {
+        path: content
+        for path, content in snapshot.files_content.items()
+        if path in selected_set
+    }
+
+    filtered_org: Dict[str, Dict[str, List[str]]] = {}
+    for folder, content in snapshot.organisation.items():
+        files = [f for f in content.get("files", []) if os.path.join(folder, f) in selected_set]
+        if files:
+            filtered_org[folder] = {
+                "dirs": content.get("dirs", []),
+                "files": files,
+            }
+
+    return ProjectSnapshot(
+        version=snapshot.version,
+        organisation=filtered_org,
+        files_content=filtered_files,
+    )
+
+</pre>
+<h2>data\__init__.py</h2>
+<pre>
+
+</pre>
+<h2>interface\ui.py</h2>
+<pre>
+import os
+from tkinter import (
+    Tk,
+    Frame,
+    Label,
+    Listbox,
+    Scrollbar,
+    SINGLE,
+    MULTIPLE,
+    END,
+    filedialog,
+    messagebox,
+    RIGHT,
+    LEFT,
+    Y,
+    BOTH,
+    Text,
+)
+from tkinter import ttk
+
+from src.client_logic import ClientLogic
+
+from data.queries_manager import QueriesManager
+from src.queries_logic import QueriesLogic
+from interface.ui_queries import QueriesUI
+
+
+class ApplicationUI:
+    def __init__(self, root: Tk):
+        self.root = root
+        self.root.title("Gestion de contexte projet")
+
+        # --- Thème moderne ---
+        style = ttk.Style()
+        style.theme_use("clam")
+
+        self.client = ClientLogic()
+
+        # Manager / logique pour les requêtes type
+        self._init_queries_module()
+
+        # Widgets principaux
+        self.preview_text = None
+        self.list_versions = None
+        self.list_files = None
+
+        self.memo_query = None
+        self.memo_version = None
+        self.queries_logic.ui = self
+
+        self._build_layout()
+
+
+
+
+    # -------------------------------------------------------------------------
+    #  INITIALISATION MODULE REQUÊTES TYPE
+    # -------------------------------------------------------------------------
+    def _init_queries_module(self):
+        self.queries_manager = QueriesManager()
+
+        def copy_to_clipboard(text: str):
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+
+        def get_selected_files():
+            return self.get_selected_files()
+
+        self.queries_logic = QueriesLogic(
+            manager=self.queries_manager,
+            copy_to_clipboard=copy_to_clipboard,
+            get_selected_files=get_selected_files,
+        )
+
+        self.queries_ui = None  # sera créé dans le layout
+
+    # -------------------------------------------------------------------------
+    #  LAYOUT GLOBAL : PANEDWINDOW + NOTEBOOK + COLONNE DROITE
+    # -------------------------------------------------------------------------
+    def _build_layout(self):
+        # PanedWindow horizontal : gauche = Notebook, droite = fichiers/preview
+        paned = ttk.PanedWindow(self.root, orient="horizontal")
+        paned.pack(fill="both", expand=True)
+
+        # Frame gauche : Notebook
+        frame_left = Frame(paned)
+        paned.add(frame_left, weight=1)
+
+        # Frame droite : fichiers + preview
+        frame_right = Frame(paned)
+        paned.add(frame_right, weight=2)
+
+        # ---------------------------------------------------------------------
+        # NOTEBOOK À GAUCHE : Onglet Projet + Onglet Requêtes type
+        # ---------------------------------------------------------------------
+        self.notebook = ttk.Notebook(frame_left)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Onglet Projet
+        self.tab_project = Frame(self.notebook)
+        self.notebook.add(self.tab_project, text="Projet")
+
+        # Onglet Requêtes type
+        self.tab_queries = Frame(self.notebook)
+        self.notebook.add(self.tab_queries, text="Requêtes type")
+
+        # Construire le contenu de l’onglet Projet
+        self._build_project_tab(self.tab_project)
+
+        # Construire le contenu de l’onglet Requêtes type
+        self._build_queries_tab(self.tab_queries)
+
+        # ---------------------------------------------------------------------
+        # COLONNE DROITE : Fichiers + Prévisualisation + Actions
+        # ---------------------------------------------------------------------
+        self._build_right_column(frame_right)
+
+    # -------------------------------------------------------------------------
+    #  ONGLET PROJET
+    # -------------------------------------------------------------------------
+    def _build_project_tab(self, parent: Frame):
+        Label(parent, text="Projet", font=("Segoe UI", 11, "bold")).pack(pady=5)
+        ttk.Button(parent, text="Sélectionner un dossier", command=self.on_select_project).pack(pady=5)
+        ttk.Button(parent, text="Ouvrir le dossier sélectionné", command=self.on_open_folder).pack(pady=5)
+
+        Label(parent, text="Extraction complète", font=("Segoe UI", 11, "bold")).pack(pady=5)
+        ttk.Button(parent, text="Extraire l'ensemble du projet", command=self.on_extract_full).pack(pady=5)
+
+        Label(parent, text="Versions disponibles", font=("Segoe UI", 11, "bold")).pack(pady=5)
+
+        frame_versions = Frame(parent)
+        frame_versions.pack(fill="both", expand=True)
+
+        self.list_versions = Listbox(frame_versions, selectmode=SINGLE, height=10)
+        self.list_versions.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scroll_versions = Scrollbar(frame_versions, orient="vertical", command=self.list_versions.yview)
+        scroll_versions.pack(side=RIGHT, fill=Y)
+
+        self.list_versions.config(yscrollcommand=scroll_versions.set)
+        self.list_versions.bind("<<ListboxSelect>>", self.on_select_version)
+
+        ttk.Button(parent, text="Restaurer la version sélectionnée", command=self.on_restore_full).pack(pady=5)
+        ttk.Button(parent, text="Supprimer la version sélectionnée", command=self.on_delete_version).pack(pady=5)
+
+    # -------------------------------------------------------------------------
+    #  ONGLET REQUÊTES TYPE
+    # -------------------------------------------------------------------------
+    def _build_queries_tab(self, parent: Frame):
+        # On insère directement QueriesUI dans cet onglet
+        self.queries_ui = QueriesUI(
+            parent,
+            manager=self.queries_manager,
+            logic=self.queries_logic,
+        )
+        self.queries_ui.pack(fill="both", expand=True, padx=5, pady=5)
+
+    # -------------------------------------------------------------------------
+    #  COLONNE DROITE : FICHIERS + PRÉVISUALISATION + ACTIONS
+    # -------------------------------------------------------------------------
+    def _build_right_column(self, parent: Frame):
+        Label(parent, text="Fichiers de la version sélectionnée", font=("Segoe UI", 11, "bold")).pack(pady=5)
+
+        frame_files = Frame(parent)
+        frame_files.pack(fill="both", expand=False, padx=10, pady=5)
+
+        self.list_files = Listbox(frame_files, selectmode=MULTIPLE, height=12)
+        self.list_files.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scroll_files = Scrollbar(frame_files, orient="vertical", command=self.list_files.yview)
+        scroll_files.pack(side=RIGHT, fill=Y)
+
+        self.list_files.config(yscrollcommand=scroll_files.set)
+        self.list_files.bind("<<ListboxSelect>>", self.on_file_selected)
+
+        Label(parent, text="Prévisualisation du fichier", font=("Segoe UI", 11, "bold")).pack(pady=5)
+
+        frame_preview = Frame(parent)
+        frame_preview.pack(fill="both", expand=True, padx=10, pady=5)
+
+        self.preview_text = Text(frame_preview, wrap="word", height=20)
+        self.preview_text.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scroll_preview = Scrollbar(frame_preview, orient="vertical", command=self.preview_text.yview)
+        scroll_preview.pack(side=RIGHT, fill=Y)
+
+        self.preview_text.config(yscrollcommand=scroll_preview.set)
+
+        ttk.Button(parent, text="Créer selected_context.md & .html", command=self.on_export_selected).pack(pady=5)
+        ttk.Button(parent, text="Restaurer les fichiers sélectionnés", command=self.on_restore_selected).pack(pady=5)
+
+
+    # -------------------------------------------------------------------------
+    #  ACTIONS ONGLET PROJET
+    # -------------------------------------------------------------------------
+    def on_select_project(self):
+        folder = filedialog.askdirectory()
+        if not folder:
+            return
+        self.client.select_project(folder)
+        messagebox.showinfo("Projet sélectionné", f"Dossier : {folder}")
+        self.refresh_versions()
+
+    def on_open_folder(self):
+        try:
+            self.client.open_project_folder()
+        except Exception as e:
+            messagebox.showerror("Erreur", str(e))
+
+    def on_extract_full(self):
+        if not self.client.has_project():
+            messagebox.showerror("Erreur", "Aucun projet sélectionné.")
+            return
+        version = self.client.extract_full_project()
+        messagebox.showinfo("Extraction terminée", f"Version créée : {version}")
+        self.refresh_versions()
+        self.select_version_in_list(version)
+
+    def refresh_versions(self):
+        if self.list_versions is None:
+            return
+        self.list_versions.delete(0, END)
+        versions = self.client.get_available_versions()
+        for v in versions:
+            self.list_versions.insert(END, v)
+
+    def on_select_version(self, event=None):
+        selection = self.list_versions.curselection()
+        if not selection:
+            return
+        index = selection[0]
+        version = self.list_versions.get(index)
+        self.client.select_version(version)
+        self.refresh_files()
+
+    def on_restore_full(self):
+        try:
+            self.client.restore_full_version()
+            messagebox.showinfo("Restauration", "Restauration complète effectuée.")
+        except Exception as e:
+            messagebox.showerror("Erreur", str(e))
+
+    def on_delete_version(self):
+        self.client.delete_selected_version()
+        self.refresh_versions()
+        if self.list_files is not None:
+            self.list_files.delete(0, END)
+        if self.preview_text is not None:
+            self.preview_text.delete(1.0, END)
+
+    # -------------------------------------------------------------------------
+    #  ACTIONS COLONNE DROITE
+    # -------------------------------------------------------------------------
+    def refresh_files(self):
+        if self.list_files is None:
+            return
+        self.list_files.delete(0, END)
+        files = self.client.get_files_from_selected_version()
+        for f in files:
+            self.list_files.insert(END, f)
+        if self.preview_text is not None:
+            self.preview_text.delete(1.0, END)
+
+    def on_file_selected(self, event=None):
+        selection = self.list_files.curselection()
+        if not selection:
+            self.preview_text.delete(1.0, END)
+            return
+
+        index = selection[0]
+        filename = self.list_files.get(index)
+
+        snapshot = self.client.server.load_snapshot(self.client.selected_version)
+        content = snapshot.files_content.get(filename, "")
+
+        self.preview_text.delete(1.0, END)
+        self.preview_text.insert(END, content)
+
+    def on_export_selected(self):
+        selected_indices = self.list_files.curselection()
+        files = [self.list_files.get(i) for i in selected_indices]
+        self.client.set_selected_files(files)
+        self.client.export_selected_markdown_and_html()
+        messagebox.showinfo("Export", "selected_context.md et selected_context.html générés.")
+
+    def on_restore_selected(self):
+        selected_indices = self.list_files.curselection()
+        files = [self.list_files.get(i) for i in selected_indices]
+        self.client.set_selected_files(files)
+        self.client.restore_selected_files()
+        messagebox.showinfo("Restauration", "Fichiers sélectionnés restaurés.")
+
+    # -------------------------------------------------------------------------
+    #  HELPERS
+    # -------------------------------------------------------------------------
+    def get_selected_files(self):
+        """
+        Utilisé par QueriesLogic pour récupérer les fichiers sélectionnés
+        dans la colonne droite.
+        """
+        if self.list_files is None:
+            return []
+        selected_indices = self.list_files.curselection()
+        return [self.list_files.get(i) for i in selected_indices]
+
+    def select_version_in_list(self, version: str):
+        if self.list_versions is None:
+            return
+        for i in range(self.list_versions.size()):
+            if self.list_versions.get(i) == version:
+                self.list_versions.selection_clear(0, END)
+                self.list_versions.selection_set(i)
+                self.list_versions.activate(i)
+                self.on_select_version()
+                break
+
+</pre>
+<h2>interface\ui_queries.py</h2>
+<pre>
+from tkinter import (
+    Frame, Label, Listbox, Scrollbar, SINGLE, END, BOTH, LEFT, RIGHT, Y,
+    Text, StringVar
+)
+from tkinter import ttk, filedialog, messagebox
+
+from data.queries_manager import QueriesManager
+
+
+class QueriesUI(Frame):
+    def __init__(self, parent, manager: QueriesManager, logic):
+        super().__init__(parent)
+        self.manager = manager
+        self.logic = logic
+
+        # Sélections courantes
+        self.current_query = None
+        self.current_version = None
+
+        # Flag pour éviter les callbacks parasites sur les versions
+        self._lock_versions = False
+
+        # Variables UI
+        self.var_query_name = StringVar()
+        self.var_category = StringVar()
+        self.var_version = StringVar()
+        self.var_context_files = StringVar()
+
+        self._build_ui()
+
+        # Tous les widgets existent maintenant → on peut rafraîchir
+        self._refresh_categories()
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+    # ------------------------------------------------------------------ #
+    # CONSTRUCTION UI
+    # ------------------------------------------------------------------ #
+
+    def _build_ui(self):
+        main = ttk.PanedWindow(self, orient="horizontal")
+        main.pack(fill=BOTH, expand=True)
+
+        left = Frame(main)
+        right = Frame(main)
+        main.add(left, weight=1)
+        main.add(right, weight=2)
+
+        # ============================
+        #  FORMULAIRE COMPLET À DROITE
+        # ============================
+        Label(right, text="Nom de la requête", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        self.entry_query_name = ttk.Entry(right, textvariable=self.var_query_name)
+        self.entry_query_name.pack(fill="x", padx=5, pady=2)
+
+        Label(right, text="Catégorie", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        self.combo_category = ttk.Combobox(right, textvariable=self.var_category, state="normal")
+        self.combo_category.pack(fill="x", padx=5, pady=2)
+
+        Label(right, text="Description", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        frame_desc = Frame(right)
+        frame_desc.pack(fill=BOTH, expand=False, padx=5, pady=2)
+        self.text_description = Text(frame_desc, height=4, wrap="word")
+        self.text_description.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll_desc = Scrollbar(frame_desc, command=self.text_description.yview)
+        scroll_desc.pack(side=RIGHT, fill=Y)
+        self.text_description.config(yscrollcommand=scroll_desc.set)
+
+        Label(right, text="Context files (@file1 @file2 ...)", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        self.entry_context_files = ttk.Entry(right, textvariable=self.var_context_files)
+        self.entry_context_files.pack(fill="x", padx=5, pady=2)
+
+        Label(right, text="Numéro de version", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        self.entry_version = ttk.Entry(right, textvariable=self.var_version)
+        self.entry_version.pack(fill="x", padx=5, pady=2)
+
+        Label(right, text="Before", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        frame_before = Frame(right)
+        frame_before.pack(fill=BOTH, expand=True, padx=5, pady=2)
+        self.text_before = Text(frame_before, height=8, wrap="word")
+        self.text_before.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll_before = Scrollbar(frame_before, command=self.text_before.yview)
+        scroll_before.pack(side=RIGHT, fill=Y)
+        self.text_before.config(yscrollcommand=scroll_before.set)
+
+        Label(right, text="After", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=2)
+        frame_after = Frame(right)
+        frame_after.pack(fill=BOTH, expand=True, padx=5, pady=2)
+        self.text_after = Text(frame_after, height=8, wrap="word")
+        self.text_after.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll_after = Scrollbar(frame_after, command=self.text_after.yview)
+        scroll_after.pack(side=RIGHT, fill=Y)
+        self.text_after.config(yscrollcommand=scroll_after.set)
+
+        btn_save = Frame(right)
+        btn_save.pack(fill="x", pady=4)
+        ttk.Button(btn_save, text="Enregistrer requête + version", command=self._on_save_all).pack(side=LEFT, padx=2)
+
+        btn_gen = Frame(right)
+        btn_gen.pack(fill="x", pady=4)
+        ttk.Button(btn_gen, text="Mémoriser la sélection de la requête", command=self._on_memorize_query).pack(side=LEFT, padx=2)
+        ttk.Button(btn_gen, text="Copier requête GitHub", command=self._on_generate_github).pack(side=LEFT, padx=2)
+        ttk.Button(btn_gen, text="Copier requête Edge", command=self._on_generate_edge).pack(side=LEFT, padx=2)
+
+        # ============================
+        #  SECTION CATÉGORIES
+        # ============================
+        frame_cat = Frame(left)
+        frame_cat.pack(fill=BOTH, expand=False, padx=5, pady=5)
+
+        Label(frame_cat, text="Catégories", font=("Segoe UI", 10, "bold")).pack()
+
+        self.list_categories = Listbox(frame_cat, selectmode=SINGLE, height=5)
+        self.list_categories.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll_cat = Scrollbar(frame_cat, command=self.list_categories.yview)
+        scroll_cat.pack(side=RIGHT, fill=Y)
+        self.list_categories.config(yscrollcommand=scroll_cat.set)
+        self.list_categories.bind("<<ListboxSelect>>", self._on_category_selected)
+
+        btn_cat = Frame(left)
+        btn_cat.pack(fill="x", padx=5)
+        ttk.Button(btn_cat, text="Ajouter", command=self._on_add_category).pack(side=LEFT, padx=2)
+        ttk.Button(btn_cat, text="Modifier", command=self._on_rename_category).pack(side=LEFT, padx=2)
+        ttk.Button(btn_cat, text="Supprimer", command=self._on_delete_category).pack(side=LEFT, padx=2)
+        ttk.Button(btn_cat, text="Import", command=self._on_import_categories).pack(side=LEFT, padx=2)
+        ttk.Button(btn_cat, text="Export", command=self._on_export_categories).pack(side=LEFT, padx=2)
+
+        # ============================
+        #  SECTION REQUÊTES
+        # ============================
+        Label(left, text="Requêtes", font=("Segoe UI", 10, "bold")).pack(pady=4)
+
+        frame_req = Frame(left)
+        frame_req.pack(fill=BOTH, expand=True, padx=5)
+
+        self.list_queries = Listbox(frame_req, selectmode=SINGLE, height=10)
+        self.list_queries.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll_req = Scrollbar(frame_req, command=self.list_queries.yview)
+        scroll_req.pack(side=RIGHT, fill=Y)
+        self.list_queries.config(yscrollcommand=scroll_req.set)
+        self.list_queries.bind("<<ListboxSelect>>", self._on_query_selected)
+
+        btn_req = Frame(left)
+        btn_req.pack(fill="x", padx=5, pady=2)
+        ttk.Button(btn_req, text="Ajouter", command=self._on_add_query).pack(side=LEFT, padx=2)
+        ttk.Button(btn_req, text="Modifier", command=self._on_rename_query).pack(side=LEFT, padx=2)
+        ttk.Button(btn_req, text="Supprimer", command=self._on_delete_query).pack(side=LEFT, padx=2)
+        ttk.Button(btn_req, text="Import", command=self._on_import_queries).pack(side=LEFT, padx=2)
+        ttk.Button(btn_req, text="Export", command=self._on_export_queries).pack(side=LEFT, padx=2)
+
+        # ============================
+        #  SECTION VERSIONS
+        # ============================
+        Label(left, text="Versions", font=("Segoe UI", 10, "bold")).pack(pady=4)
+
+        frame_ver = Frame(left)
+        frame_ver.pack(fill=BOTH, expand=True, padx=5)
+
+        self.list_versions = Listbox(frame_ver, selectmode=SINGLE, height=8)
+        self.list_versions.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll_ver = Scrollbar(frame_ver, command=self.list_versions.yview)
+        scroll_ver.pack(side=RIGHT, fill=Y)
+        self.list_versions.config(yscrollcommand=scroll_ver.set)
+        self.list_versions.bind("<<ListboxSelect>>", self._on_version_selected)
+
+        btn_ver = Frame(left)
+        btn_ver.pack(fill="x", padx=5, pady=2)
+        ttk.Button(btn_ver, text="Ajouter", command=self._on_add_version).pack(side=LEFT, padx=2)
+        ttk.Button(btn_ver, text="Modifier", command=self._on_rename_version).pack(side=LEFT, padx=2)
+        ttk.Button(btn_ver, text="Supprimer", command=self._on_delete_version).pack(side=LEFT, padx=2)
+
+    # ------------------------------------------------------------------ #
+    # Rafraîchissements
+    # ------------------------------------------------------------------ #
+
+    def _refresh_categories(self):
+        self.list_categories.unbind("<<ListboxSelect>>")
+
+        cats = self.manager.get_categories()
+        selected = self.list_categories.curselection()
+
+        self.list_categories.delete(0, END)
+        for c in cats:
+            self.list_categories.insert(END, c)
+
+        self.combo_category["values"] = cats
+
+        if selected:
+            try:
+                self.list_categories.selection_set(selected[0])
+            except Exception:
+                pass
+
+        self.list_categories.bind("<<ListboxSelect>>", self._on_category_selected)
+        self.list_queries.bind("<<ListboxSelect>>", self._on_query_selected)
+
+    def _refresh_queries(self):
+        selected = self.current_query
+
+        self.list_queries.delete(0, END)
+        for name in self.manager.get_all_query_names():
+            self.list_queries.insert(END, name)
+
+        self._select_in_list(self.list_queries, selected)
+
+    def _refresh_versions(self):
+        self._lock_versions = True
+
+        selected = self.current_version
+
+        self.list_versions.delete(0, END)
+        if self.current_query:
+            for v in self.manager.get_versions_for_query(self.current_query):
+                self.list_versions.insert(END, v)
+
+        self._select_in_list(self.list_versions, selected)
+
+        self._lock_versions = False
+
+    def _refresh_editor(self):
+        self._lock_versions = True
+
+        # --- Requête sélectionnée ---
+        if self.current_query:
+            q = self.manager.get_query(self.current_query)
+        else:
+            q = None
+
+        if q:
+            self.var_query_name.set(q.get("name", ""))
+            self.var_category.set(q.get("category", ""))
+            self.var_context_files.set(q.get("context_files", ""))
+
+            self.text_description.delete("1.0", END)
+            self.text_description.insert("1.0", q.get("description", ""))
+        else:
+            self.var_query_name.set("")
+            self.var_category.set("")
+            self.var_context_files.set("")
+            self.text_description.delete("1.0", END)
+
+        # --- Version sélectionnée ---
+        if q and self.current_version:
+            v = self.manager.get_version(self.current_query, self.current_version)
+        else:
+            v = None
+
+        if v:
+            self.var_version.set(v.get("version", ""))
+            self.text_before.delete("1.0", END)
+            self.text_before.insert("1.0", v.get("before", ""))
+
+            self.text_after.delete("1.0", END)
+            self.text_after.insert("1.0", v.get("after", ""))
+        else:
+            self.var_version.set("")
+            self.text_before.delete("1.0", END)
+            self.text_after.delete("1.0", END)
+
+        # Sélection visuelle
+        self._select_in_list(self.list_queries, self.current_query)
+        self._select_in_list(self.list_versions, self.current_version)
+
+        self._lock_versions = False
+
+    def _select_in_list(self, listbox, value):
+        listbox.selection_clear(0, END)
+        if not value:
+            return
+        for i in range(listbox.size()):
+            if listbox.get(i) == value:
+                listbox.selection_set(i)
+                listbox.activate(i)
+                break
+
+    # ------------------------------------------------------------------ #
+    # Sélections
+    # ------------------------------------------------------------------ #
+
+    def _on_query_selected(self, event=None):
+        if event and event.widget is not self.list_queries:
+            return
+
+        sel = self.list_queries.curselection()
+        if not sel:
+            return
+
+        self.current_query = self.list_queries.get(sel[0])
+
+        versions = self.manager.get_versions_for_query(self.current_query)
+        self.current_version = versions[0] if versions else None
+
+        self._refresh_versions()
+        self._refresh_editor()
+
+    def _on_version_selected(self, event=None):
+        if self._lock_versions:
+            return
+        if event and event.widget is not self.list_versions:
+            return
+
+        sel = self.list_versions.curselection()
+        if not sel:
+            self.current_version = None
+        else:
+            self.current_version = self.list_versions.get(sel[0])
+
+        # Ici, on ne touche qu’aux champs de version, pas aux listes
+        self._lock_versions = True
+
+        if self.current_query and self.current_version:
+            v = self.manager.get_version(self.current_query, self.current_version)
+        else:
+            v = None
+
+        if v:
+            self.var_version.set(v.get("version", ""))
+            self.text_before.delete("1.0", END)
+            self.text_before.insert("1.0", v.get("before", ""))
+            self.text_after.delete("1.0", END)
+            self.text_after.insert("1.0", v.get("after", ""))
+        else:
+            self.var_version.set("")
+            self.text_before.delete("1.0", END)
+            self.text_after.delete("1.0", END)
+
+        self._lock_versions = False
+
+    # ------------------------------------------------------------------ #
+    # Actions Catégories
+    # ------------------------------------------------------------------ #
+
+    def _on_add_category(self):
+        name = self._ask_string("Nouvelle catégorie", "Nom :")
+        if not name:
+            return
+        self.manager.add_category(name)
+        self._refresh_categories()
+
+    def _on_rename_category(self):
+        sel = self.list_categories.curselection()
+        if not sel:
+            return
+        old = self.list_categories.get(sel[0])
+        new = self._ask_string("Renommer catégorie", "Nouveau nom :", initial=old)
+        if not new:
+            return
+        self.manager.rename_category(old, new)
+        self._refresh_categories()
+
+    def _on_delete_category(self):
+        sel = self.list_categories.curselection()
+        if not sel:
+            return
+        name = self.list_categories.get(sel[0])
+        if not messagebox.askyesno("Supprimer", f"Supprimer la catégorie '{name}' ?"):
+            return
+        self.manager.delete_category(name)
+        self._refresh_categories()
+
+    def _on_import_categories(self):
+        path = filedialog.askopenfilename(title="Importer catégories", filetypes=[("JSON", "*.json")])
+        if not path:
+            return
+        self.manager.import_categories(path)
+        self._refresh_categories()
+
+    def _on_export_categories(self):
+        path = filedialog.asksaveasfilename(title="Exporter catégories", defaultextension=".json")
+        if not path:
+            return
+        self.manager.export_categories(path)
+
+    def _on_category_selected(self, event=None):
+        if not self.current_query:
+            return
+        selection = self.list_categories.curselection()
+        if not selection:
+            return
+        category = self.list_categories.get(selection[0])
+        self.var_category.set(category)
+
+    # ------------------------------------------------------------------ #
+    # Actions Requêtes
+    # ------------------------------------------------------------------ #
+
+    def _on_add_query(self):
+        name = self._ask_string("Nouvelle requête", "Nom :")
+        if not name:
+            return
+        self.manager.add_query(name)
+        self.current_query = name
+        self.current_version = None
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+    def _on_rename_query(self):
+        if not self.current_query:
+            return
+        new = self._ask_string("Renommer requête", "Nouveau nom :", initial=self.current_query)
+        if not new:
+            return
+        self.manager.update_query_fields(
+            old_name=self.current_query,
+            new_name=new,
+            category=self.var_category.get(),
+            description=self.text_description.get("1.0", END).strip(),
+            context_files=self.var_context_files.get(),
+        )
+        self.current_query = new
+        self._refresh_queries()
+        self._refresh_editor()
+
+    def _on_delete_query(self):
+        if not self.current_query:
+            return
+        if not messagebox.askyesno("Supprimer", f"Supprimer la requête '{self.current_query}' ?"):
+            return
+        self.manager.delete_query(self.current_query)
+        self.current_query = None
+        self.current_version = None
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+    def _on_import_queries(self):
+        path = filedialog.askopenfilename(title="Importer requêtes", filetypes=[("JSON", "*.json")])
+        if not path:
+            return
+        self.manager.import_queries(path)
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+    def _on_export_queries(self):
+        path = filedialog.asksaveasfilename(title="Exporter requêtes", defaultextension=".json")
+        if not path:
+            return
+        self.manager.export_queries(path)
+
+    def _on_memorize_query(self):
+        # Récupérer la requête + version sélectionnées
+        query, version = self.get_current_query_and_version()
+
+        if not (query and version):
+            messagebox.showerror("Erreur", "Sélectionnez d'abord une requête et une version.")
+            return
+
+        # Mémoriser dans ApplicationUI
+        self.logic.ui.memo_query = query
+        self.logic.ui.memo_version = version
+
+        # Message clair pour guider l'utilisateur
+        messagebox.showinfo(
+            "Sélection mémorisée",
+            "La requête et la version ont été mémorisées.\n\n"
+            "➡️ Sélectionnez maintenant les fichiers de la version dans la colonne de droite.\n"
+            "➡️ Puis cliquez sur l’un des boutons :\n"
+            "   - Copier requête GitHub\n"
+            "   - Copier requête Edge"
+        )
+
+
+    # ------------------------------------------------------------------ #
+    # Actions Versions
+    # ------------------------------------------------------------------ #
+
+    def _on_add_version(self):
+        if not self.current_query:
+            messagebox.showerror("Erreur", "Sélectionnez une requête.")
+            return
+
+        existing = self.manager.get_versions_for_query(self.current_query)
+
+        suggested = "001"
+        if existing:
+            nums = []
+            for v in existing:
+                try:
+                    nums.append(int(v))
+                except ValueError:
+                    pass
+            if nums:
+                suggested = f"{max(nums) + 1:03d}"
+
+        version = self._ask_string("Nouvelle version", "Numéro :", initial=suggested)
+        if not version:
+            return
+
+        self.manager.add_version(self.current_query, version)
+        self.current_version = version
+        self.var_version.set(version)
+
+        self._refresh_versions()
+        self._refresh_editor()
+
+    def _on_rename_version(self):
+        if not (self.current_query and self.current_version):
+            return
+        new = self._ask_string("Renommer version", "Nouveau numéro :", initial=self.current_version)
+        if not new:
+            return
+        before = self.text_before.get("1.0", END).strip()
+        after = self.text_after.get("1.0", END).strip()
+        self.manager.update_version(
+            query_name=self.current_query,
+            old_version=self.current_version,
+            new_version=new,
+            before=before,
+            after=after,
+        )
+        self.current_version = new
+        self._refresh_versions()
+        self._refresh_editor()
+
+    def _on_delete_version(self):
+        if not (self.current_query and self.current_version):
+            return
+        if not messagebox.askyesno("Supprimer", f"Supprimer la version '{self.current_version}' ?"):
+            return
+        self.manager.delete_version(self.current_query, self.current_version)
+        self.current_version = None
+        self._refresh_versions()
+        self._refresh_editor()
+
+    # ------------------------------------------------------------------ #
+    # ENREGISTREMENT GLOBAL
+    # ------------------------------------------------------------------ #
+
+    def _on_save_all(self):
+        if not self.current_query:
+            messagebox.showerror("Erreur", "Sélectionnez ou créez une requête.")
+            return
+
+        old_name = self.current_query
+        new_name = self.var_query_name.get().strip()
+        category = self.var_category.get().strip()
+        description = self.text_description.get("1.0", END).strip()
+        context_files = self.var_context_files.get().strip()
+
+        self.manager.update_query_fields(
+            old_name=old_name,
+            new_name=new_name or old_name,
+            category=category,
+            description=description,
+            context_files=context_files,
+        )
+        self.current_query = new_name or old_name
+
+        version_number = self.var_version.get().strip()
+        before = self.text_before.get("1.0", END).strip()
+        after = self.text_after.get("1.0", END).strip()
+
+        if version_number:
+            self.manager.update_version(
+                query_name=self.current_query,
+                old_version=self.current_version or version_number,
+                new_version=version_number,
+                before=before,
+                after=after,
+            )
+            self.current_version = version_number
+            self.var_version.set(version_number)
+
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+    # ------------------------------------------------------------------ #
+    # GÉNÉRATION
+    # ------------------------------------------------------------------ #
+
+    def get_current_query_and_version(self):
+        return self.current_query, self.current_version
+
+
+    def _on_generate_github(self):
+        # Utiliser la sélection mémorisée dans ApplicationUI
+        memo_query = self.logic.ui.memo_query
+        memo_version = self.logic.ui.memo_version
+
+        if not (memo_query and memo_version):
+            messagebox.showerror("Erreur", "Cliquez d'abord sur 'Mémoriser la sélection de la requête' avant de copier.")
+            return
+
+        saved_query = memo_query
+        saved_version = memo_version
+
+
+        # Appeler la génération (sans context_files)
+        self.logic.generate_github_copilot()
+
+        # Restaurer la sélection
+        self.current_query = saved_query
+        self.current_version = saved_version
+
+        # Rafraîchir l’UI
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+
+    def _on_generate_edge(self):
+        # Utiliser la sélection mémorisée dans ApplicationUI
+        memo_query = self.logic.ui.memo_query
+        memo_version = self.logic.ui.memo_version
+
+        if not (memo_query and memo_version):
+            messagebox.showerror("Erreur", "Cliquez d'abord sur 'Mémoriser la sélection de la requête' avant de copier.")
+            return
+
+        saved_query = memo_query
+        saved_version = memo_version
+
+
+        self.logic.generate_edge_copilot()
+
+        self.current_query = saved_query
+        self.current_version = saved_version
+
+        self._refresh_queries()
+        self._refresh_versions()
+        self._refresh_editor()
+
+
+
+
+    # ------------------------------------------------------------------ #
+    # HELPERS
+    # ------------------------------------------------------------------ #
+
+    def _ask_string(self, title: str, prompt: str, initial: str = ""):
+        from tkinter.simpledialog import askstring
+        return askstring(title, prompt, initialvalue=initial)
+
+</pre>
+<h2>interface\__init__.py</h2>
+<pre>
+
+</pre>
+<h2>src\client_logic.py</h2>
+<pre>
+import os
+import subprocess
+from typing import List, Optional
+from src.server_logic import ServerLogic
+
+
+class ClientLogic:
+    def __init__(self):
+        self.project_root: Optional[str] = None
+        self.server: Optional[ServerLogic] = None
+        self.selected_version: Optional[str] = None
+        self.selected_files: List[str] = []
+
+    # ---------- Projet ----------
+
+    def select_project(self, path: str) -> None:
+        self.project_root = path
+        self.server = ServerLogic(path)
+
+    def has_project(self) -> bool:
+        return self.server is not None
+
+    def open_project_folder(self) -> None:
+        if not self.project_root:
+            return
+        if os.name == "nt":  # Windows
+            os.startfile(self.project_root)
+        elif os.name == "posix":  # macOS / Linux
+            subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", self.project_root])
+
+    # ---------- Extraction ----------
+
+    def extract_full_project(self) -> str:
+        if not self.server:
+            raise RuntimeError("Aucun projet sélectionné.")
+        snapshot = self.server.scan_project()
+        self.server.save_snapshot(snapshot)
+        self.server.export_full_context(snapshot)
+        self.selected_version = snapshot.version
+        return snapshot.version
+
+    # ---------- Versions ----------
+
+    def get_available_versions(self) -> List[str]:
+        if not self.server:
+            return []
+        return self.server.list_versions()
+
+    def select_version(self, version: str) -> None:
+        self.selected_version = version
+
+    def delete_selected_version(self) -> None:
+        if not self.server or not self.selected_version:
+            return
+        self.server.delete_version(self.selected_version)
+        self.selected_version = None
+
+    # ---------- Fichiers ----------
+
+    def get_files_from_selected_version(self) -> List[str]:
+        if not self.server or not self.selected_version:
+            return []
+        snapshot = self.server.load_snapshot(self.selected_version)
+        return sorted(snapshot.files_content.keys())
+
+    def set_selected_files(self, files: List[str]) -> None:
+        self.selected_files = files
+
+    # ---------- Export sélection ----------
+
+    def export_selected_markdown_and_html(self) -> None:
+        if not self.server or not self.selected_version:
+            return
+        snapshot = self.server.load_snapshot(self.selected_version)
+        self.server.export_selected_context(snapshot, self.selected_files)
+
+    # ---------- Restauration ----------
+
+    def restore_full_version(self) -> None:
+        if not self.server or not self.selected_version:
+            return
+        snapshot = self.server.load_snapshot(self.selected_version)
+        self.server.restore_all(snapshot)
+
+    def restore_selected_files(self) -> None:
+        if not self.server or not self.selected_version:
+            return
+        snapshot = self.server.load_snapshot(self.selected_version)
+        self.server.restore_selected(snapshot, self.selected_files)
+
+</pre>
+<h2>src\queries_logic.py</h2>
+<pre>
+import os
+import webbrowser
+from typing import List, Dict, Callable, Optional
+import subprocess
+
+
+from data.queries_manager import QueriesManager
+
+
+class QueriesLogic:
+    def __init__(
+        self,
+        manager: QueriesManager,
+        copy_to_clipboard: Callable[[str], None],
+        get_selected_files: Callable[[], List[str]],
+        base_path: Optional[str] = None,
+    ):
+        self.manager = manager
+        self.copy_to_clipboard = copy_to_clipboard
+        self.get_selected_files = get_selected_files
+
+        if base_path is None:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.base_path = base_path
+
+        self.context_html_path = os.path.join(
+            self.base_path,
+            "code_source",
+            "selected_context.html",
+        )
+
+        self.context_md_path = os.path.join(
+            self.base_path,
+            "code_source",
+            "selected_context.md",
+        )
+
+
+    # ---------- Construction des requêtes ----------
+
+    def build_edge_query(self, query: Dict, version: Dict) -> str:
+        before = version.get("before", "").strip()
+        after = version.get("after", "").strip()
+
+        context_block = (
+            "Interface: the context files are available in the @selected_context tab."
+        )
+
+        parts = [p for p in [before, context_block, after] if p]
+        return "\n\n".join(parts)
+
+    def build_github_query(self, query: Dict, version: Dict) -> str:
+        before = version.get("before", "").strip()
+        after = version.get("after", "").strip()
+
+        selected_files = self.get_selected_files()
+        if selected_files:
+            context_lines = [f"@{path}" for path in selected_files]
+            context_block = "Context files:\n" + "\n".join(context_lines)
+        else:
+            context_block = "Context files: (no files selected)"
+
+        parts = [p for p in [before, context_block, after] if p]
+        return "\n\n".join(parts)
+
+    # ---------- Actions ----------
+
+
+
+    def open_edge_context_html(self) -> None:
+        # Ouvrir le HTML normalement
+        if os.path.exists(self.context_html_path):
+            webbrowser.open(self.context_html_path)
+
+        # Ouvrir le MD dans Edge (forcer Edge)
+        if os.path.exists(self.context_md_path):
+            try:
+                subprocess.Popen([
+                    "cmd", "/c", "start", "msedge.exe", self.context_md_path
+                ], shell=True)
+            except Exception as e:
+                print("Erreur ouverture MD dans Edge:", e)
+
+
+    def generate_edge_copilot(self) -> str:
+        query_name = self.ui.memo_query
+        query = self.manager.get_query(query_name)
+        if query is None:
+            return ""
+        
+        version_number = self.ui.memo_version
+        version = self.manager.get_version(query_name, version_number)
+        if version is None:
+            return ""
+        text = self.build_edge_query(query, version)
+        self.open_edge_context_html()
+        self.copy_to_clipboard(text)
+        return text
+
+    def generate_github_copilot(self) -> str:
+        query_name = self.ui.memo_query
+        query = self.manager.get_query(query_name)
+        if query is None:
+            return ""
+        
+        version_number = self.ui.memo_version
+        version = self.manager.get_version(query_name, version_number)
+        if version is None:
+            return ""
+        text = self.build_github_query(query, version)
+        self.copy_to_clipboard(text)
+        return text
+
+</pre>
+<h2>src\server_logic.py</h2>
+<pre>
+import os
+from typing import List, Dict, Tuple
+from data.models import ProjectPaths, ExclusionRules, ProjectSnapshot
+from data.utils import (
+    save_json,
+    load_json,
+    generate_markdown,
+    generate_html,
+    get_next_version_number,
+    list_existing_versions,
+    delete_version_files,
+)
+
+
+class ServerLogic:
+    def __init__(self, project_root: str):
+        self.paths = ProjectPaths(project_root)
+        self.exclusions = ExclusionRules()
+        self._ensure_code_source()
+
+    # ---------- Initialisation / exclusions ----------
+
+    def _ensure_code_source(self) -> None:
+        os.makedirs(self.paths.code_source, exist_ok=True)
+        if not os.path.exists(self.paths.exclude_file):
+            with open(self.paths.exclude_file, "w", encoding="utf-8") as f:
+                f.write("\n".join(sorted(self.exclusions.defaults)))
+
+    def load_exclusions(self) -> None:
+        self.exclusions.custom.clear()
+        if os.path.exists(self.paths.exclude_file):
+            with open(self.paths.exclude_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        self.exclusions.custom.add(line)
+
+    # ---------- Scan / snapshot ----------
+
+    def scan_project(self) -> ProjectSnapshot:
+        self.load_exclusions()
+        organisation: Dict[str, Dict[str, List[str]]] = {}
+        files_content: Dict[str, str] = {}
+
+        for current_root, dirs, files in os.walk(self.paths.root):
+            rel_root = os.path.relpath(current_root, self.paths.root)
+            if rel_root == ".":
+                rel_root = ""
+
+            dirs[:] = [d for d in dirs if not self.exclusions.should_exclude(d)]
+
+            organisation[rel_root] = {
+                "dirs": dirs.copy(),
+                "files": [f for f in files if not self.exclusions.should_exclude(f)],
+            }
+
+            for f in files:
+                if self.exclusions.should_exclude(f):
+                    continue
+                rel_path = os.path.join(rel_root, f) if rel_root else f
+                file_path = os.path.join(current_root, f)
+                try:
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as fp:
+                        files_content[rel_path] = fp.read()
+                except Exception:
+                    files_content[rel_path] = "<< Impossible de lire ce fichier >>"
+
+        version = get_next_version_number(self.paths.code_source)
+        return ProjectSnapshot(version=version, organisation=organisation, files_content=files_content)
+
+    # ---------- Sauvegarde / chargement snapshot ----------
+
+    def save_snapshot(self, snapshot: ProjectSnapshot) -> None:
+        save_json(self.paths.organisation_json(snapshot.version), snapshot.organisation)
+        save_json(self.paths.files_content_json(snapshot.version), snapshot.files_content)
+
+    def load_snapshot(self, version: str) -> ProjectSnapshot:
+        org = load_json(self.paths.organisation_json(version))
+        fc = load_json(self.paths.files_content_json(version))
+        return ProjectSnapshot(version=version, organisation=org, files_content=fc)
+
+    # ---------- Exports ----------
+
+    def export_full_context(self, snapshot: ProjectSnapshot) -> None:
+        md = generate_markdown(snapshot)
+        html = generate_html(snapshot)
+        with open(self.paths.context_md, "w", encoding="utf-8") as f:
+            f.write(md)
+        with open(self.paths.context_html, "w", encoding="utf-8") as f:
+            f.write(html)
+
+    def export_selected_context(self, snapshot: ProjectSnapshot, selected_files: List[str]) -> None:
+        from data.utils import filter_snapshot
+        filtered = filter_snapshot(snapshot, selected_files)
+        md = generate_markdown(filtered)
+        html = generate_html(filtered)
+        with open(self.paths.selected_context_md, "w", encoding="utf-8") as f:
+            f.write(md)
+        with open(self.paths.selected_context_html, "w", encoding="utf-8") as f:
+            f.write(html)
+
+    # ---------- Versioning ----------
+
+    def list_versions(self) -> List[str]:
+        return list_existing_versions(self.paths.code_source)
+
+    def delete_version(self, version: str) -> None:
+        delete_version_files(self.paths.code_source, version)
+
+    # ---------- Restauration ----------
+
+    def restore_all(self, snapshot: ProjectSnapshot) -> None:
+        for rel_path, content in snapshot.files_content.items():
+            abs_path = os.path.join(self.paths.root, rel_path)
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+            with open(abs_path, "w", encoding="utf-8") as f:
+                f.write(content)
+
+    def restore_selected(self, snapshot: ProjectSnapshot, selected_files: List[str]) -> None:
+        selected_set = set(selected_files)
+        for rel_path, content in snapshot.files_content.items():
+            if rel_path not in selected_set:
+                continue
+            abs_path = os.path.join(self.paths.root, rel_path)
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+            with open(abs_path, "w", encoding="utf-8") as f:
+                f.write(content)
+</pre>
+<h2>src\__init__.py</h2>
+<pre>
+
+</pre>
+</body></html>

@@ -1,0 +1,44 @@
+{
+    "": {
+        "dirs": [
+            "data",
+            "interface",
+            "src"
+        ],
+        "files": [
+            "extract_code.spec",
+            "main.py",
+            "queries.json",
+            "queries_categories.json",
+            "requirements.txt"
+        ]
+    },
+    "data": {
+        "dirs": [],
+        "files": [
+            "categories.json",
+            "models.py",
+            "queries.json",
+            "queries_manager.py",
+            "utils.py",
+            "__init__.py"
+        ]
+    },
+    "interface": {
+        "dirs": [],
+        "files": [
+            "ui.py",
+            "ui_queries.py",
+            "__init__.py"
+        ]
+    },
+    "src": {
+        "dirs": [],
+        "files": [
+            "client_logic.py",
+            "queries_logic.py",
+            "server_logic.py",
+            "__init__.py"
+        ]
+    }
+}

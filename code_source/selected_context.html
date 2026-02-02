@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'><title>Context</title></head>
+<body>
+<h1>Organisation du projet</h1>
+<h2></h2>
+<h3>Dossiers :</h3><ul>
+<li>.vscode</li>
+<li>data</li>
+<li>interface</li>
+<li>src</li>
+</ul>
+<h3>Fichiers :</h3><ul>
+<li>main.py</li>
+</ul><hr>
+<h1>Contenu des fichiers</h1>
+<h2>main.py</h2>
+<pre>
+from tkinter import Tk
+from interface.ui import ApplicationUI
+
+
+def main():
+    root = Tk()
+    app = ApplicationUI(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</body></html>

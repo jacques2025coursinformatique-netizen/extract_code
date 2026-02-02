@@ -1,0 +1,12 @@
+.env
+.git
+.python-version
+.venv
+__pycache__
+archive
+code_source
+dist
+venv
+build
+main.spec
+

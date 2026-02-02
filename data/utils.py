@@ -56,41 +56,56 @@ def generate_markdown(snapshot: ProjectSnapshot) -> str:
     md += "\n# Contenu des fichiers\n\n"
     for filepath, text in snapshot.files_content.items():
         md += f"## {filepath}\n\n"
-        md += "```text\n"
-        md += text
+
+        # 🔥 Échapper les backticks pour Notion
+        safe_text = text.replace("```", "`` `")
+
+        md += "```code\n"
+        md += safe_text
         md += "\n```\n\n"
+
     return md
 
 
-def generate_html(snapshot: ProjectSnapshot) -> str:
-    html = [
-        "<html>",
-        "<head><meta charset='utf-8'><title>Context</title></head>",
-        "<body>",
-        "<h1>Organisation du projet</h1>",
-    ]
-    for folder, content in snapshot.organisation.items():
-        html.append(f"<h2>{folder}</h2>")
-        html.append("<h3>Dossiers :</h3><ul>")
-        for d in content.get("dirs", []):
-            html.append(f"<li>{d}</li>")
-        html.append("</ul>")
-        html.append("<h3>Fichiers :</h3><ul>")
-        for f in content.get("files", []):
-            html.append(f"<li>{f}</li>")
-        html.append("</ul><hr>")
 
-    html.append("<h1>Contenu des fichiers</h1>")
+def generate_html(snapshot: ProjectSnapshot) -> str:
+    """
+    Version adaptée à Copilot :
+    - HTML simple, non échappé
+    - structure proche du Markdown
+    - lisible comme un document texte dans Edge
+    """
+    parts: List[str] = []
+    parts.append("<!DOCTYPE html>")
+    parts.append("<html>")
+    parts.append("<head><meta charset='utf-8'><title>Context</title></head>")
+    parts.append("<body>")
+    parts.append("<h1>Organisation du projet</h1>")
+
+    for folder, content in snapshot.organisation.items():
+        parts.append(f"<h2>{folder}</h2>")
+        parts.append("<h3>Dossiers :</h3><ul>")
+        for d in content.get("dirs", []):
+            parts.append(f"<li>{d}</li>")
+        parts.append("</ul>")
+        parts.append("<h3>Fichiers :</h3><ul>")
+        for f in content.get("files", []):
+            parts.append(f"<li>{f}</li>")
+        parts.append("</ul><hr>")
+
+    parts.append("<h1>Contenu des fichiers</h1>")
     for filepath, text in snapshot.files_content.items():
-        html.append(f"<h2>{filepath}</h2>")
-        html.append("<pre>")
-        html.append(escape_html(text))
-        html.append("</pre>")
-    html.append("</body></html>")
-    return "\n".join(html)
+        parts.append(f"<h2>{filepath}</h2>")
+        parts.append("<pre>")
+        parts.append(text)
+        parts.append("</pre>")
+
+    parts.append("</body></html>")
+    return "\n".join(parts)
 
 
 def escape_html(text: str) -> str:
+    # Gardée pour compatibilité éventuelle, mais plus utilisée dans generate_html
     return (
         text.replace("&", "&amp;")
         .replace("<", "&lt;")

@@ -2,7 +2,6 @@ import os
 from tkinter import (
     Tk,
     Frame,
-    Button,
     Label,
     Listbox,
     Scrollbar,
@@ -18,7 +17,12 @@ from tkinter import (
     Text,
 )
 from tkinter import ttk
+
 from src.client_logic import ClientLogic
+
+from data.queries_manager import QueriesManager
+from src.queries_logic import QueriesLogic
+from interface.ui_queries import QueriesUI
 
 
 class ApplicationUI:
@@ -26,37 +30,105 @@ class ApplicationUI:
         self.root = root
         self.root.title("Gestion de contexte projet")
 
-        # --- Activation d'un thème moderne ---
+        # --- Thème moderne ---
         style = ttk.Style()
         style.theme_use("clam")
 
         self.client = ClientLogic()
 
-        self.frame_left = Frame(root)
-        self.frame_right = Frame(root)
+        # Manager / logique pour les requêtes type
+        self._init_queries_module()
 
-        self.preview_text = None  # zone de prévisualisation
+        # Widgets principaux
+        self.preview_text = None
+        self.list_versions = None
+        self.list_files = None
+
+        self.memo_query = None
+        self.memo_version = None
+        self.queries_logic.ui = self
 
         self._build_layout()
 
+
+
+
+    # -------------------------------------------------------------------------
+    #  INITIALISATION MODULE REQUÊTES TYPE
+    # -------------------------------------------------------------------------
+    def _init_queries_module(self):
+        self.queries_manager = QueriesManager()
+
+        def copy_to_clipboard(text: str):
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+
+        def get_selected_files():
+            return self.get_selected_files()
+
+        self.queries_logic = QueriesLogic(
+            manager=self.queries_manager,
+            copy_to_clipboard=copy_to_clipboard,
+            get_selected_files=get_selected_files,
+        )
+
+        self.queries_ui = None  # sera créé dans le layout
+
+    # -------------------------------------------------------------------------
+    #  LAYOUT GLOBAL : PANEDWINDOW + NOTEBOOK + COLONNE DROITE
+    # -------------------------------------------------------------------------
     def _build_layout(self):
-        self.frame_left.pack(side="left", fill="both", expand=True, padx=10, pady=10)
-        self.frame_right.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+        # PanedWindow horizontal : gauche = Notebook, droite = fichiers/preview
+        paned = ttk.PanedWindow(self.root, orient="horizontal")
+        paned.pack(fill="both", expand=True)
 
-        # -------------------------
-        # COLONNE GAUCHE
-        # -------------------------
-        Label(self.frame_left, text="Projet", font=("Segoe UI", 11, "bold")).pack(pady=5)
-        ttk.Button(self.frame_left, text="Sélectionner un dossier", command=self.on_select_project).pack(pady=5)
-        ttk.Button(self.frame_left, text="Ouvrir le dossier sélectionné", command=self.on_open_folder).pack(pady=5)
+        # Frame gauche : Notebook
+        frame_left = Frame(paned)
+        paned.add(frame_left, weight=1)
 
-        Label(self.frame_left, text="Extraction complète", font=("Segoe UI", 11, "bold")).pack(pady=5)
-        ttk.Button(self.frame_left, text="Extraire l'ensemble du projet", command=self.on_extract_full).pack(pady=5)
+        # Frame droite : fichiers + preview
+        frame_right = Frame(paned)
+        paned.add(frame_right, weight=2)
 
-        Label(self.frame_left, text="Versions disponibles", font=("Segoe UI", 11, "bold")).pack(pady=5)
+        # ---------------------------------------------------------------------
+        # NOTEBOOK À GAUCHE : Onglet Projet + Onglet Requêtes type
+        # ---------------------------------------------------------------------
+        self.notebook = ttk.Notebook(frame_left)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # --- Frame versions + scrollbar ---
-        frame_versions = Frame(self.frame_left)
+        # Onglet Projet
+        self.tab_project = Frame(self.notebook)
+        self.notebook.add(self.tab_project, text="Projet")
+
+        # Onglet Requêtes type
+        self.tab_queries = Frame(self.notebook)
+        self.notebook.add(self.tab_queries, text="Requêtes type")
+
+        # Construire le contenu de l’onglet Projet
+        self._build_project_tab(self.tab_project)
+
+        # Construire le contenu de l’onglet Requêtes type
+        self._build_queries_tab(self.tab_queries)
+
+        # ---------------------------------------------------------------------
+        # COLONNE DROITE : Fichiers + Prévisualisation + Actions
+        # ---------------------------------------------------------------------
+        self._build_right_column(frame_right)
+
+    # -------------------------------------------------------------------------
+    #  ONGLET PROJET
+    # -------------------------------------------------------------------------
+    def _build_project_tab(self, parent: Frame):
+        Label(parent, text="Projet", font=("Segoe UI", 11, "bold")).pack(pady=5)
+        ttk.Button(parent, text="Sélectionner un dossier", command=self.on_select_project).pack(pady=5)
+        ttk.Button(parent, text="Ouvrir le dossier sélectionné", command=self.on_open_folder).pack(pady=5)
+
+        Label(parent, text="Extraction complète", font=("Segoe UI", 11, "bold")).pack(pady=5)
+        ttk.Button(parent, text="Extraire l'ensemble du projet", command=self.on_extract_full).pack(pady=5)
+
+        Label(parent, text="Versions disponibles", font=("Segoe UI", 11, "bold")).pack(pady=5)
+
+        frame_versions = Frame(parent)
         frame_versions.pack(fill="both", expand=True)
 
         self.list_versions = Listbox(frame_versions, selectmode=SINGLE, height=10)
@@ -68,17 +140,29 @@ class ApplicationUI:
         self.list_versions.config(yscrollcommand=scroll_versions.set)
         self.list_versions.bind("<<ListboxSelect>>", self.on_select_version)
 
-        ttk.Button(self.frame_left, text="Restaurer la version sélectionnée", command=self.on_restore_full).pack(pady=5)
-        ttk.Button(self.frame_left, text="Supprimer la version sélectionnée", command=self.on_delete_version).pack(pady=5)
+        ttk.Button(parent, text="Restaurer la version sélectionnée", command=self.on_restore_full).pack(pady=5)
+        ttk.Button(parent, text="Supprimer la version sélectionnée", command=self.on_delete_version).pack(pady=5)
 
-        # -------------------------
-        # COLONNE DROITE
-        # -------------------------
-        Label(self.frame_right, text="Fichiers de la version sélectionnée", font=("Segoe UI", 11, "bold")).pack(pady=5)
+    # -------------------------------------------------------------------------
+    #  ONGLET REQUÊTES TYPE
+    # -------------------------------------------------------------------------
+    def _build_queries_tab(self, parent: Frame):
+        # On insère directement QueriesUI dans cet onglet
+        self.queries_ui = QueriesUI(
+            parent,
+            manager=self.queries_manager,
+            logic=self.queries_logic,
+        )
+        self.queries_ui.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # --- Frame files + scrollbar ---
-        frame_files = Frame(self.frame_right)
-        frame_files.pack(fill="both", expand=False)
+    # -------------------------------------------------------------------------
+    #  COLONNE DROITE : FICHIERS + PRÉVISUALISATION + ACTIONS
+    # -------------------------------------------------------------------------
+    def _build_right_column(self, parent: Frame):
+        Label(parent, text="Fichiers de la version sélectionnée", font=("Segoe UI", 11, "bold")).pack(pady=5)
+
+        frame_files = Frame(parent)
+        frame_files.pack(fill="both", expand=False, padx=10, pady=5)
 
         self.list_files = Listbox(frame_files, selectmode=MULTIPLE, height=12)
         self.list_files.pack(side=LEFT, fill=BOTH, expand=True)
@@ -89,13 +173,10 @@ class ApplicationUI:
         self.list_files.config(yscrollcommand=scroll_files.set)
         self.list_files.bind("<<ListboxSelect>>", self.on_file_selected)
 
-        # -------------------------
-        # PRÉVISUALISATION
-        # -------------------------
-        Label(self.frame_right, text="Prévisualisation du fichier", font=("Segoe UI", 11, "bold")).pack(pady=5)
+        Label(parent, text="Prévisualisation du fichier", font=("Segoe UI", 11, "bold")).pack(pady=5)
 
-        frame_preview = Frame(self.frame_right)
-        frame_preview.pack(fill="both", expand=True)
+        frame_preview = Frame(parent)
+        frame_preview.pack(fill="both", expand=True, padx=10, pady=5)
 
         self.preview_text = Text(frame_preview, wrap="word", height=20)
         self.preview_text.pack(side=LEFT, fill=BOTH, expand=True)
@@ -105,16 +186,13 @@ class ApplicationUI:
 
         self.preview_text.config(yscrollcommand=scroll_preview.set)
 
-        # -------------------------
-        # ACTIONS SUR LES FICHIERS
-        # -------------------------
-        ttk.Button(self.frame_right, text="Créer selected_context.md & .html", command=self.on_export_selected).pack(pady=5)
-        ttk.Button(self.frame_right, text="Restaurer les fichiers sélectionnés", command=self.on_restore_selected).pack(pady=5)
+        ttk.Button(parent, text="Créer selected_context.md & .html", command=self.on_export_selected).pack(pady=5)
+        ttk.Button(parent, text="Restaurer les fichiers sélectionnés", command=self.on_restore_selected).pack(pady=5)
 
-    # -------------------------
-    # ACTIONS COLONNE GAUCHE
-    # -------------------------
 
+    # -------------------------------------------------------------------------
+    #  ACTIONS ONGLET PROJET
+    # -------------------------------------------------------------------------
     def on_select_project(self):
         folder = filedialog.askdirectory()
         if not folder:
@@ -139,6 +217,8 @@ class ApplicationUI:
         self.select_version_in_list(version)
 
     def refresh_versions(self):
+        if self.list_versions is None:
+            return
         self.list_versions.delete(0, END)
         versions = self.client.get_available_versions()
         for v in versions:
@@ -163,19 +243,23 @@ class ApplicationUI:
     def on_delete_version(self):
         self.client.delete_selected_version()
         self.refresh_versions()
-        self.list_files.delete(0, END)
-        self.preview_text.delete(1.0, END)
+        if self.list_files is not None:
+            self.list_files.delete(0, END)
+        if self.preview_text is not None:
+            self.preview_text.delete(1.0, END)
 
-    # -------------------------
-    # ACTIONS COLONNE DROITE
-    # -------------------------
-
+    # -------------------------------------------------------------------------
+    #  ACTIONS COLONNE DROITE
+    # -------------------------------------------------------------------------
     def refresh_files(self):
+        if self.list_files is None:
+            return
         self.list_files.delete(0, END)
         files = self.client.get_files_from_selected_version()
         for f in files:
             self.list_files.insert(END, f)
-        self.preview_text.delete(1.0, END)
+        if self.preview_text is not None:
+            self.preview_text.delete(1.0, END)
 
     def on_file_selected(self, event=None):
         selection = self.list_files.curselection()
@@ -206,11 +290,22 @@ class ApplicationUI:
         self.client.restore_selected_files()
         messagebox.showinfo("Restauration", "Fichiers sélectionnés restaurés.")
 
-    # -------------------------
-    # HELPERS
-    # -------------------------
+    # -------------------------------------------------------------------------
+    #  HELPERS
+    # -------------------------------------------------------------------------
+    def get_selected_files(self):
+        """
+        Utilisé par QueriesLogic pour récupérer les fichiers sélectionnés
+        dans la colonne droite.
+        """
+        if self.list_files is None:
+            return []
+        selected_indices = self.list_files.curselection()
+        return [self.list_files.get(i) for i in selected_indices]
 
     def select_version_in_list(self, version: str):
+        if self.list_versions is None:
+            return
         for i in range(self.list_versions.size()):
             if self.list_versions.get(i) == version:
                 self.list_versions.selection_clear(0, END)

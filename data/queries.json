@@ -1,0 +1,30 @@
+{
+    "queries": [
+        {
+            "name": "Essai",
+            "description": "Ma dexcription",
+            "category": "Mon essai",
+            "context_files": "@file1",
+            "versions": [
+                {
+                    "version": "001",
+                    "before": "frerg",
+                    "after": "fgfg"
+                }
+            ]
+        },
+        {
+            "name": "Essai 2",
+            "description": "fsdgdgbdf",
+            "category": "eSSAI 2",
+            "context_files": "",
+            "versions": [
+                {
+                    "version": "001",
+                    "before": "gghrthrt",
+                    "after": "trhtrshtrshrs"
+                }
+            ]
+        }
+    ]
+}
